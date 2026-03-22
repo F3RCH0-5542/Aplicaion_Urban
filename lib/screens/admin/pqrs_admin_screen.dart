@@ -282,27 +282,24 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: _cyan),
-            onPressed: _cargarPqrs,
-          ),
+          IconButton(icon: const Icon(Icons.refresh, color: _cyan), onPressed: _cargarPqrs),
         ],
       ),
       body: Column(children: [
         _buildFiltros(),
         _buildContador(),
-        Expanded(
-          child: _cargando
-              ? const Center(child: CircularProgressIndicator(color: _cyan))
-              : _filtrados.isEmpty
-                  ? _buildVacio()
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _filtrados.length,
-                      itemBuilder: (_, i) => _buildCard(_filtrados[i]),
-                    ),
-        ),
+        Expanded(child: _buildCuerpo()),
       ]),
+    );
+  }
+
+  Widget _buildCuerpo() {
+    if (_cargando) return const Center(child: CircularProgressIndicator(color: _cyan));
+    if (_filtrados.isEmpty) return _buildVacio();
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _filtrados.length,
+      itemBuilder: (_, i) => _buildCard(_filtrados[i]),
     );
   }
 
@@ -314,32 +311,34 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: filtros.map((f) {
-            final activo = _filtroEstado == f;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: GestureDetector(
-                onTap: () => _aplicarFiltro(f),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: activo ? _cyan : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: activo ? _cyan : _border),
-                  ),
-                  child: Text(
-                    f == 'todos' ? 'Todos' : f,
-                    style: TextStyle(
-                      color: activo ? Colors.black : Colors.white54,
-                      fontWeight: activo ? FontWeight.w600 : FontWeight.normal,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+          children: filtros.map((f) => _buildChipFiltro(f)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChipFiltro(String f) {
+    final activo = _filtroEstado == f;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => _aplicarFiltro(f),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: activo ? _cyan : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: activo ? _cyan : _border),
+          ),
+          child: Text(
+            f == 'todos' ? 'Todos' : f,
+            style: TextStyle(
+              color: activo ? Colors.black : Colors.white54,
+              fontWeight: activo ? FontWeight.w600 : FontWeight.normal,
+              fontSize: 13,
+            ),
+          ),
         ),
       ),
     );
@@ -375,6 +374,77 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
     ]);
   }
 
+  // ── Card ──────────────────────────────────────────────────────────────────
+
+  Widget _buildCardCabecera(Pqrs pqrs, Color estadoColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: _border))),
+      child: Row(children: [
+        _chipTipo(pqrs.tipoDisplay),
+        const SizedBox(width: 8),
+        _chipEstado(pqrs.estadoDisplay, estadoColor),
+        const Spacer(),
+        Text('#${pqrs.idPqrs}',
+            style: const TextStyle(color: Colors.white38, fontSize: 12)),
+      ]),
+    );
+  }
+
+  Widget _buildCardRespuesta(Pqrs pqrs) {
+    if (pqrs.respuesta == null || pqrs.respuesta!.isEmpty) return const SizedBox.shrink();
+    return Column(children: [
+      const SizedBox(height: 10),
+      Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: _cyan.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _cyan.withOpacity(0.2)),
+        ),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Icon(Icons.reply, color: _cyan, size: 16),
+          const SizedBox(width: 8),
+          Expanded(child: Text(pqrs.respuesta!,
+              style: const TextStyle(color: Colors.white60, fontSize: 12))),
+        ]),
+      ),
+    ]);
+  }
+
+  Widget _buildCardAcciones(Pqrs pqrs) {
+    final tieneRespuesta = pqrs.respuesta != null && pqrs.respuesta!.isNotEmpty;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: _border))),
+      child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        TextButton.icon(
+          onPressed: () => _confirmarEliminar(pqrs),
+          icon: const Icon(Icons.delete_outline, size: 16, color: _pink),
+          label: const Text('Eliminar', style: TextStyle(color: _pink, fontSize: 13)),
+          style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton.icon(
+          onPressed: () => _abrirDialogoResponder(pqrs),
+          icon: const Icon(Icons.reply, size: 16),
+          label: Text(
+            tieneRespuesta ? 'Editar respuesta' : 'Responder',
+            style: const TextStyle(fontSize: 13),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _cyan,
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            elevation: 0,
+          ),
+        ),
+      ]),
+    );
+  }
+
   Widget _buildCard(Pqrs pqrs) {
     final estadoColor = _colorEstado(pqrs.estado);
     return Container(
@@ -385,19 +455,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
         border: Border.all(color: _border),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: _border))),
-          child: Row(children: [
-            _chipTipo(pqrs.tipoDisplay),
-            const SizedBox(width: 8),
-            _chipEstado(pqrs.estadoDisplay, estadoColor),
-            const Spacer(),
-            Text('#${pqrs.idPqrs}',
-                style: const TextStyle(color: Colors.white38, fontSize: 12)),
-          ]),
-        ),
+        _buildCardCabecera(pqrs, estadoColor),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -414,23 +472,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
             Text(pqrs.descripcion,
                 style: const TextStyle(color: Colors.white70, fontSize: 13),
                 maxLines: 3, overflow: TextOverflow.ellipsis),
-            if (pqrs.respuesta != null && pqrs.respuesta!.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: _cyan.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: _cyan.withOpacity(0.2)),
-                ),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Icon(Icons.reply, color: _cyan, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(pqrs.respuesta!,
-                      style: const TextStyle(color: Colors.white60, fontSize: 12))),
-                ]),
-              ),
-            ],
+            _buildCardRespuesta(pqrs),
             if (pqrs.fechaCreacion != null) ...[
               const SizedBox(height: 8),
               Text(_formatFecha(pqrs.fechaCreacion!),
@@ -438,38 +480,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
             ],
           ]),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: _border))),
-          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            TextButton.icon(
-              onPressed: () => _confirmarEliminar(pqrs),
-              icon: const Icon(Icons.delete_outline, size: 16, color: _pink),
-              label: const Text('Eliminar', style: TextStyle(color: _pink, fontSize: 13)),
-              style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              onPressed: () => _abrirDialogoResponder(pqrs),
-              icon: const Icon(Icons.reply, size: 16),
-              label: Text(
-                pqrs.respuesta != null && pqrs.respuesta!.isNotEmpty
-                    ? 'Editar respuesta'
-                    : 'Responder',
-                style: const TextStyle(fontSize: 13),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _cyan,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                elevation: 0,
-              ),
-            ),
-          ]),
-        ),
+        _buildCardAcciones(pqrs),
       ]),
     );
   }
@@ -507,7 +518,9 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
       const Icon(Icons.inbox_outlined, size: 64, color: Colors.white12),
       const SizedBox(height: 12),
       Text(
-        'No hay PQRS ${_filtroEstado == 'todos' ? '' : 'con estado "$_filtroEstado"'}',
+        _filtroEstado == 'todos'
+            ? 'No hay PQRS'
+            : 'No hay PQRS con estado "$_filtroEstado"',
         style: const TextStyle(color: Colors.white38),
       ),
     ]),

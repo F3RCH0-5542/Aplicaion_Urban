@@ -50,9 +50,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
   void initState() {
     super.initState();
     _cargar();
-    _busquedaCtrl.addListener(() {
-      setState(() { _currentPage = 0; _aplicarFiltro(); });
-    });
+    _busquedaCtrl.addListener(_onBusquedaChanged);
+  }
+
+  void _onBusquedaChanged() {
+    setState(() { _currentPage = 0; _aplicarFiltro(); });
   }
 
   @override
@@ -109,7 +111,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
     });
   }
 
-  // ✅ FIX L111: sub-widgets para reducir complejidad de _abrirFormulario
+  // ── Formulario ────────────────────────────────────────────────────────────
+
   Widget _buildCampoFormulario(String label, TextEditingController ctrl,
       {int maxLines = 1, TextInputType tipo = TextInputType.text}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -167,7 +170,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
     };
   }
 
-  // ✅ FIX L111: complejidad reducida con sub-métodos
   Future<void> _abrirFormulario({dynamic producto}) async {
     final esEdicion  = producto != null;
     final nombreCtrl = TextEditingController(text: esEdicion ? producto['nombre_producto'] : '');
@@ -207,52 +209,67 @@ class _ProductosScreenState extends State<ProductosScreen> {
             const SizedBox(height: 12),
             _buildCampoFormulario('Categoría', catCtrl),
             const SizedBox(height: 24),
-            Row(children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Color(0xFF2a2a2a)),
-                    ),
-                  ),
-                  child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _purple,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () async {
-                    if (!_validarFormulario(nombreCtrl, precioCtrl)) return;
-                    Navigator.pop(ctx);
-                    final body = _buildBodyProducto(
-                      nombreCtrl: nombreCtrl, descCtrl: descCtrl,
-                      precioCtrl: precioCtrl, stockCtrl: stockCtrl, catCtrl: catCtrl,
-                    );
-                    if (esEdicion) {
-                      await _actualizar(producto['id_producto'], body);
-                    } else {
-                      await _crear(body);
-                    }
-                  },
-                  child: Text(
-                    esEdicion ? 'Guardar' : 'Crear',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ]),
+            _buildFormularioAcciones(ctx, esEdicion, producto,
+                nombreCtrl: nombreCtrl, descCtrl: descCtrl,
+                precioCtrl: precioCtrl, stockCtrl: stockCtrl, catCtrl: catCtrl),
           ]),
         ),
       ),
     );
+  }
+
+  Widget _buildFormularioAcciones(
+    BuildContext ctx,
+    bool esEdicion,
+    dynamic producto, {
+    required TextEditingController nombreCtrl,
+    required TextEditingController descCtrl,
+    required TextEditingController precioCtrl,
+    required TextEditingController stockCtrl,
+    required TextEditingController catCtrl,
+  }) {
+    return Row(children: [
+      Expanded(
+        child: TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: const BorderSide(color: Color(0xFF2a2a2a)),
+            ),
+          ),
+          child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _purple,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: () async {
+            if (!_validarFormulario(nombreCtrl, precioCtrl)) return;
+            Navigator.pop(ctx);
+            final body = _buildBodyProducto(
+              nombreCtrl: nombreCtrl, descCtrl: descCtrl,
+              precioCtrl: precioCtrl, stockCtrl: stockCtrl, catCtrl: catCtrl,
+            );
+            if (esEdicion) {
+              await _actualizar(producto['id_producto'], body);
+            } else {
+              await _crear(body);
+            }
+          },
+          child: Text(
+            esEdicion ? 'Guardar' : 'Crear',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    ]);
   }
 
   Future<void> _crear(Map<String, dynamic> body) async {
@@ -361,7 +378,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
     ));
   }
 
-  // ✅ FIX L360: build() simplificado con sub-widgets
+  // ── Scaffold ──────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -397,6 +415,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
     );
   }
 
+  // ── Buscador ──────────────────────────────────────────────────────────────
+
   Widget _buildBuscador() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
@@ -426,59 +446,65 @@ class _ProductosScreenState extends State<ProductosScreen> {
     );
   }
 
+  // ── Filtros de categoría ──────────────────────────────────────────────────
+
+  int _contarCategoria(String cat) => cat == 'todas'
+      ? _productos.length
+      : _productos.where((p) => p['categoria'] == cat).length;
+
+  Widget _buildChipCategoria(String cat) {
+    final sel   = _filtroCategoria == cat;
+    final count = _contarCategoria(cat);
+    return GestureDetector(
+      onTap: () => setState(() {
+        _filtroCategoria = cat;
+        _currentPage = 0;
+        _aplicarFiltro();
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: sel ? _purple.withOpacity(0.15) : const Color(0xFF1a1a1a),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: sel ? _purple : const Color(0xFF2a2a2a),
+              width: sel ? 1.5 : 1),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(
+            cat == 'todas' ? 'Todas' : cat,
+            style: TextStyle(
+              color: sel ? _purple : Colors.white38,
+              fontSize: 12,
+              fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: sel ? _purple.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text('$count',
+                style: TextStyle(
+                    color: sel ? _purple : Colors.white24,
+                    fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        ]),
+      ),
+    );
+  }
+
   Widget _buildFiltrosCategorias() {
     return SizedBox(
       height: 42,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        children: _categorias.map((cat) {
-          final sel   = _filtroCategoria == cat;
-          final count = cat == 'todas'
-              ? _productos.length
-              : _productos.where((p) => p['categoria'] == cat).length;
-          return GestureDetector(
-            onTap: () => setState(() {
-              _filtroCategoria = cat;
-              _currentPage = 0;
-              _aplicarFiltro();
-            }),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: sel ? _purple.withOpacity( 0.15) : const Color(0xFF1a1a1a),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: sel ? _purple : const Color(0xFF2a2a2a),
-                    width: sel ? 1.5 : 1),
-              ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                  cat == 'todas' ? 'Todas' : cat,
-                  style: TextStyle(
-                    color: sel ? _purple : Colors.white38,
-                    fontSize: 12,
-                    fontWeight: sel ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: sel ? _purple.withOpacity( 0.25) : Colors.white.withOpacity( 0.05),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text('$count',
-                      style: TextStyle(
-                          color: sel ? _purple : Colors.white24,
-                          fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ]),
-            ),
-          );
-        }).toList(),
+        children: _categorias.map(_buildChipCategoria).toList(),
       ),
     );
   }
@@ -495,20 +521,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   Widget _buildCuerpo() {
     if (_cargando) return const Center(child: CircularProgressIndicator(color: _purple));
-    if (_paginados.isEmpty) {
-      return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.inventory_2_outlined, size: 72, color: Colors.grey[800]),
-        const SizedBox(height: 14),
-        const Text('Sin productos', style: TextStyle(color: Colors.grey, fontSize: 15)),
-        const SizedBox(height: 16),
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(backgroundColor: _purple),
-          onPressed: () => _abrirFormulario(),
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Crear producto', style: TextStyle(color: Colors.white)),
-        ),
-      ]));
-    }
+    if (_paginados.isEmpty) return _buildVacio();
     return RefreshIndicator(
       onRefresh: _cargar,
       color: _purple,
@@ -518,6 +531,95 @@ class _ProductosScreenState extends State<ProductosScreen> {
         itemBuilder: (_, i) => _buildCard(_paginados[i]),
       ),
     );
+  }
+
+  Widget _buildVacio() {
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Icon(Icons.inventory_2_outlined, size: 72, color: Colors.grey[800]),
+      const SizedBox(height: 14),
+      const Text('Sin productos', style: TextStyle(color: Colors.grey, fontSize: 15)),
+      const SizedBox(height: 16),
+      ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(backgroundColor: _purple),
+        onPressed: () => _abrirFormulario(),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Crear producto', style: TextStyle(color: Colors.white)),
+      ),
+    ]));
+  }
+
+  // ── Card ──────────────────────────────────────────────────────────────────
+
+  Widget _buildCardInfo(dynamic p, bool stockBajo) {
+    final stock = p['stock_disponible'] ?? 0;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: _purple.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Text('#${p['id_producto']}',
+              style: const TextStyle(color: _purple, fontSize: 10, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text(
+          p['nombre_producto'] ?? '-',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+          overflow: TextOverflow.ellipsis,
+        )),
+      ]),
+      const SizedBox(height: 4),
+      if (p['descripcion'] != null && p['descripcion'].toString().isNotEmpty)
+        Text(p['descripcion'],
+            style: const TextStyle(color: Colors.white38, fontSize: 11),
+            overflow: TextOverflow.ellipsis, maxLines: 1),
+      const SizedBox(height: 4),
+      _buildCardChips(p, stock, stockBajo),
+    ]);
+  }
+
+  Widget _buildCardChips(dynamic p, int stock, bool stockBajo) {
+    return Row(children: [
+      if (p['categoria'] != null) ...[
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Text(p['categoria'],
+              style: const TextStyle(color: Colors.white54, fontSize: 10)),
+        ),
+        const SizedBox(width: 8),
+      ],
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: stockBajo ? _red.withOpacity(0.12) : _green.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text('Stock: $stock',
+            style: TextStyle(
+              color: stockBajo ? _red : _green,
+              fontSize: 10, fontWeight: FontWeight.bold,
+            )),
+      ),
+    ]);
+  }
+
+  Widget _buildCardAcciones(dynamic p, double precio) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Text('\$${precio.toStringAsFixed(0)}',
+          style: const TextStyle(color: _purple, fontSize: 16, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      Row(children: [
+        _iconBtn(Icons.edit_outlined, Colors.white54, () => _abrirFormulario(producto: p)),
+        const SizedBox(width: 6),
+        _iconBtn(Icons.delete_outline, _red, () => _confirmarEliminar(p)),
+      ]),
+    ]);
   }
 
   Widget _buildCard(dynamic p) {
@@ -532,81 +634,22 @@ class _ProductosScreenState extends State<ProductosScreen> {
         color: const Color(0xFF1a1a1a),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: stockBajo ? _red.withOpacity( 0.4) : _purple.withOpacity( 0.2),
+          color: stockBajo ? _red.withOpacity(0.4) : _purple.withOpacity(0.2),
         ),
       ),
       child: Row(children: [
         Container(
           width: 48, height: 48,
           decoration: BoxDecoration(
-            color: _purple.withOpacity( 0.12),
+            color: _purple.withOpacity(0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(Icons.inventory_2, color: _purple, size: 24),
         ),
         const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _purple.withOpacity( 0.1),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text('#${p['id_producto']}',
-                  style: const TextStyle(color: _purple, fontSize: 10, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(
-              p['nombre_producto'] ?? '-',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
-              overflow: TextOverflow.ellipsis,
-            )),
-          ]),
-          const SizedBox(height: 4),
-          if (p['descripcion'] != null && p['descripcion'].toString().isNotEmpty)
-            Text(p['descripcion'],
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
-                overflow: TextOverflow.ellipsis, maxLines: 1),
-          const SizedBox(height: 4),
-          Row(children: [
-            if (p['categoria'] != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity( 0.06),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(p['categoria'],
-                    style: const TextStyle(color: Colors.white54, fontSize: 10)),
-              ),
-              const SizedBox(width: 8),
-            ],
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: stockBajo ? _red.withOpacity( 0.12) : _green.withOpacity( 0.12),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text('Stock: $stock',
-                  style: TextStyle(
-                    color: stockBajo ? _red : _green,
-                    fontSize: 10, fontWeight: FontWeight.bold,
-                  )),
-            ),
-          ]),
-        ])),
+        Expanded(child: _buildCardInfo(p, stockBajo)),
         const SizedBox(width: 8),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text('\$${precio.toStringAsFixed(0)}',
-              style: const TextStyle(color: _purple, fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(children: [
-            _iconBtn(Icons.edit_outlined, Colors.white54, () => _abrirFormulario(producto: p)),
-            const SizedBox(width: 6),
-            _iconBtn(Icons.delete_outline, _red, () => _confirmarEliminar(p)),
-          ]),
-        ]),
+        _buildCardAcciones(p, precio),
       ]),
     );
   }
@@ -616,13 +659,40 @@ class _ProductosScreenState extends State<ProductosScreen> {
     child: Container(
       width: 32, height: 32,
       decoration: BoxDecoration(
-        color: color.withOpacity( 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity( 0.25)),
+        border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Icon(icon, color: color, size: 16),
     ),
   );
+
+  // ── Paginación ────────────────────────────────────────────────────────────
+
+  Widget _buildSelectorTamano() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF2a2a2a)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _pageSize,
+          dropdownColor: const Color(0xFF1a1a1a),
+          isDense: true,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+          icon: const Icon(Icons.expand_more, color: _purple, size: 16),
+          items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
+          onChanged: (v) {
+            if (v == null) return;
+            setState(() { _pageSize = v; _currentPage = 0; });
+          },
+        ),
+      ),
+    );
+  }
 
   Widget _buildPaginacion() => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -631,28 +701,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       border: Border(top: BorderSide(color: Color(0xFF1e1e1e))),
     ),
     child: Row(children: [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1a1a1a),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF2a2a2a)),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<int>(
-            value: _pageSize,
-            dropdownColor: const Color(0xFF1a1a1a),
-            isDense: true,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-            icon: const Icon(Icons.expand_more, color: _purple, size: 16),
-            items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
-            onChanged: (v) {
-              if (v == null) return;
-              setState(() { _pageSize = v; _currentPage = 0; });
-            },
-          ),
-        ),
-      ),
+      _buildSelectorTamano(),
       const SizedBox(width: 8),
       _btnPag(Icons.chevron_left, _currentPage > 0, () => setState(() => _currentPage--)),
       Expanded(child: Center(child: Text(
