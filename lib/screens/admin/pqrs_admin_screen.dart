@@ -112,7 +112,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
                 const Text('Estado:', style: TextStyle(color: Colors.white54, fontSize: 12)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: estadoSeleccionado,
+                  initialValue: estadoSeleccionado,
                   dropdownColor: _card,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
