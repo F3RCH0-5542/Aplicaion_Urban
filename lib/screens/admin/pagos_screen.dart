@@ -444,56 +444,52 @@ class _PagosScreenState extends State<PagosScreen> {
     );
   }
 
-  Widget _buildChipFiltro(String estado) {
-  final sel   = _filtroEstado == estado;
-  final color = estado == 'todos' ? _cyan : (_coloresEstado[estado] ?? Colors.grey);
-  final count = estado == 'todos'
-      ? _pagos.length
-      : _pagos.where((p) => p['estado_pago'] == estado).length;
-  final chipColor    = sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a);
-  final borderColor  = sel ? color : const Color(0xFF2a2a2a);
-  final labelColor   = sel ? color : Colors.white38;
-  final countColor   = sel ? color : Colors.white24;
-  final countBgColor = sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05);
-  final label        = estado == 'todos' ? 'Todos' : estado;
-
-  return GestureDetector(
-    onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: chipColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: sel ? 1.5 : 1),
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(label, style: TextStyle(
-            color: labelColor, fontSize: 12,
-            fontWeight: sel ? FontWeight.bold : FontWeight.normal)),
-        const SizedBox(width: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-          decoration: BoxDecoration(color: countBgColor, borderRadius: BorderRadius.circular(10)),
-          child: Text('$count', style: TextStyle(
-              color: countColor, fontSize: 10, fontWeight: FontWeight.bold)),
-        ),
-      ]),
-    ),
-  );
-}
-
-Widget _buildFiltrosEstado() {
-  return SizedBox(
-    height: 42,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      children: _estados.map(_buildChipFiltro).toList(),
-    ),
-  );
-}
+  Widget _buildFiltrosEstado() {
+    return SizedBox(
+      height: 42,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        children: _estados.map((estado) {
+          final sel   = _filtroEstado == estado;
+          final color = estado == 'todos' ? _cyan : (_coloresEstado[estado] ?? Colors.grey);
+          final count = estado == 'todos'
+              ? _pagos.length
+              : _pagos.where((p) => p['estado_pago'] == estado).length;
+          return GestureDetector(
+            onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 1.5 : 1),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(
+                  estado == 'todos' ? 'Todos' : estado,
+                  style: TextStyle(
+                      color: sel ? color : Colors.white38,
+                      fontSize: 12,
+                      fontWeight: sel ? FontWeight.bold : FontWeight.normal),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text('$count',
+                      style: TextStyle(
+                          color: sel ? color : Colors.white24,
+                          fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ]),
+            ),
+          );
         }).toList(),
       ),
     );
