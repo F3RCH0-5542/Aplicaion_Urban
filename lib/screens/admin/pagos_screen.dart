@@ -132,8 +132,6 @@ class _PagosScreenState extends State<PagosScreen> {
     }
   }
 
-  // ── FIX L122: _cambiarEstado partido en sub-métodos ───────────────────
-
   Widget _buildInfoPago(dynamic pago) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -209,23 +207,21 @@ class _PagosScreenState extends State<PagosScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: _cyan,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+                  backgroundColor: _cyan,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               onPressed: () async {
                 if (estadoSel == pago['estado_pago']) { Navigator.pop(ctx); return; }
                 Navigator.pop(ctx);
                 await _actualizarEstado(pago['id_pago'], estadoSel);
               },
-              child: const Text('Guardar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text('Guardar',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
       ),
     );
   }
-
-  // ── FIX L411: _verDetalle partido en sub-métodos ──────────────────────
 
   Widget _buildHeaderDetalle(dynamic pago, Color color, IconData icono) {
     return Row(children: [
@@ -297,48 +293,40 @@ class _PagosScreenState extends State<PagosScreen> {
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.55,
-        maxChildSize: 0.85,
+        expand: false, initialChildSize: 0.55, maxChildSize: 0.85,
         builder: (_, scroll) => SingleChildScrollView(
           controller: scroll,
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36, height: 4,
-                  decoration: BoxDecoration(
-                      color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildHeaderDetalle(pago, color, icono),
-              const SizedBox(height: 20),
-              _buildMontoDetalle(pago),
-              const SizedBox(height: 16),
-              _seccion('PAGO', Icons.receipt, [
-                _fila('Método', (pago['metodo_pago'] ?? '-').replaceAll('_', ' ')),
-                _fila('Fecha', _formatFecha(pago['fecha_pago'])),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+            )),
+            const SizedBox(height: 16),
+            _buildHeaderDetalle(pago, color, icono),
+            const SizedBox(height: 20),
+            _buildMontoDetalle(pago),
+            const SizedBox(height: 16),
+            _seccion('PAGO', Icons.receipt, [
+              _fila('Método', (pago['metodo_pago'] ?? '-').replaceAll('_', ' ')),
+              _fila('Fecha', _formatFecha(pago['fecha_pago'])),
+            ]),
+            const SizedBox(height: 12),
+            if (usuario != null) ...[
+              _seccion('CLIENTE', Icons.person, [
+                _fila('Nombre', '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'),
+                _fila('Correo', usuario['correo'] ?? '-'),
               ]),
               const SizedBox(height: 12),
-              if (usuario != null) ...[
-                _seccion('CLIENTE', Icons.person, [
-                  _fila('Nombre', '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'),
-                  _fila('Correo', usuario['correo'] ?? '-'),
-                ]),
-                const SizedBox(height: 12),
-              ],
-              if (pedido != null)
-                _seccion('PEDIDO', Icons.receipt_long, [
-                  _fila('ID', '#${pedido['id_pedido']}'),
-                  _fila('Fecha', _formatFecha(pedido['fecha_pedido'])),
-                  _fila('Total pedido',
-                      '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(0) ?? '0'}'),
-                ]),
             ],
-          ),
+            if (pedido != null)
+              _seccion('PEDIDO', Icons.receipt_long, [
+                _fila('ID', '#${pedido['id_pedido']}'),
+                _fila('Fecha', _formatFecha(pedido['fecha_pedido'])),
+                _fila('Total pedido',
+                    '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(0) ?? '0'}'),
+              ]),
+          ]),
         ),
       ),
     );
@@ -355,9 +343,8 @@ class _PagosScreenState extends State<PagosScreen> {
           Row(children: [
             Icon(icono, color: _cyan, size: 14),
             const SizedBox(width: 6),
-            Text(titulo,
-                style: const TextStyle(
-                    color: _cyan, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+            Text(titulo, style: const TextStyle(
+                color: _cyan, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
           ]),
           const SizedBox(height: 10),
           ...hijos,
@@ -368,11 +355,9 @@ class _PagosScreenState extends State<PagosScreen> {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-          Flexible(
-              child: Text(valor,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  textAlign: TextAlign.end,
-                  overflow: TextOverflow.ellipsis)),
+          Flexible(child: Text(valor,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              textAlign: TextAlign.end, overflow: TextOverflow.ellipsis)),
         ]),
       );
 
@@ -402,18 +387,14 @@ class _PagosScreenState extends State<PagosScreen> {
     ));
   }
 
-  // ── FIX: _buildCuerpo reemplaza ternario anidado en build ─────────────
   Widget _buildCuerpo() {
     if (_cargando) return const Center(child: CircularProgressIndicator(color: _cyan));
     if (_pagosPaginados.isEmpty) {
-      return Center(child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.payment_outlined, size: 72, color: Colors.grey[800]),
-          const SizedBox(height: 14),
-          const Text('Sin pagos', style: TextStyle(color: Colors.grey, fontSize: 15)),
-        ],
-      ));
+      return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(Icons.payment_outlined, size: 72, color: Colors.grey[800]),
+        const SizedBox(height: 14),
+        const Text('Sin pagos', style: TextStyle(color: Colors.grey, fontSize: 15)),
+      ]));
     }
     return RefreshIndicator(
       onRefresh: _cargar,
@@ -426,6 +407,88 @@ class _PagosScreenState extends State<PagosScreen> {
     );
   }
 
+  // ── FIX L430: _buildFiltros y _buildBuscador extraídos de build() ──────
+  Widget _buildBuscador() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: TextField(
+        controller: _busquedaCtrl,
+        style: const TextStyle(color: Colors.white, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: 'Buscar por ID, cliente o método...',
+          hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+          prefixIcon: const Icon(Icons.search, color: Colors.white24),
+          suffixIcon: _busquedaCtrl.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white24, size: 18),
+                  onPressed: () {
+                    _busquedaCtrl.clear();
+                    setState(() { _currentPage = 0; _aplicarFiltro(); });
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: const Color(0xFF1a1a1a),
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltrosEstado() {
+    return SizedBox(
+      height: 42,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        children: _estados.map((estado) {
+          final sel   = _filtroEstado == estado;
+          final color = estado == 'todos' ? _cyan : (_coloresEstado[estado] ?? Colors.grey);
+          final count = estado == 'todos'
+              ? _pagos.length
+              : _pagos.where((p) => p['estado_pago'] == estado).length;
+          return GestureDetector(
+            onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 1.5 : 1),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(
+                  estado == 'todos' ? 'Todos' : estado,
+                  style: TextStyle(
+                      color: sel ? color : Colors.white38,
+                      fontSize: 12,
+                      fontWeight: sel ? FontWeight.bold : FontWeight.normal),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text('$count',
+                      style: TextStyle(
+                          color: sel ? color : Colors.white24,
+                          fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ]),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ✅ FIX L430: build() simplificado con _buildBuscador y _buildFiltrosEstado
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -444,82 +507,8 @@ class _PagosScreenState extends State<PagosScreen> {
         ],
       ),
       body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: TextField(
-            controller: _busquedaCtrl,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: InputDecoration(
-              hintText: 'Buscar por ID, cliente o método...',
-              hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-              prefixIcon: const Icon(Icons.search, color: Colors.white24),
-              suffixIcon: _busquedaCtrl.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white24, size: 18),
-                      onPressed: () {
-                        _busquedaCtrl.clear();
-                        setState(() { _currentPage = 0; _aplicarFiltro(); });
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: const Color(0xFF1a1a1a),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 42,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            children: _estados.map((estado) {
-              final sel   = _filtroEstado == estado;
-              final color = estado == 'todos' ? _cyan : (_coloresEstado[estado] ?? Colors.grey);
-              final count = estado == 'todos'
-                  ? _pagos.length
-                  : _pagos.where((p) => p['estado_pago'] == estado).length;
-              return GestureDetector(
-                onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 1.5 : 1),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text(
-                      estado == 'todos' ? 'Todos' : estado,
-                      style: TextStyle(
-                        color: sel ? color : Colors.white38,
-                        fontSize: 12,
-                        fontWeight: sel ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text('$count',
-                          style: TextStyle(
-                              color: sel ? color : Colors.white24,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                  ]),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
+        _buildBuscador(),
+        _buildFiltrosEstado(),
         const SizedBox(height: 4),
         Expanded(child: _buildCuerpo()),
         _buildPaginacion(),
@@ -548,8 +537,7 @@ class _PagosScreenState extends State<PagosScreen> {
         child: Row(children: [
           Container(
             width: 44, height: 44,
-            decoration: BoxDecoration(
-                color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
             child: Icon(icono, color: _cyan, size: 22),
           ),
           const SizedBox(width: 12),
@@ -557,19 +545,16 @@ class _PagosScreenState extends State<PagosScreen> {
             Row(children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                    color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
+                decoration: BoxDecoration(color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
                 child: Text('#${pago['id_pago']}',
                     style: const TextStyle(color: _cyan, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  nombre.isEmpty ? 'Sin cliente' : nombre,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+              Expanded(child: Text(
+                nombre.isEmpty ? 'Sin cliente' : nombre,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              )),
             ]),
             const SizedBox(height: 4),
             Text((pago['metodo_pago'] ?? '-').replaceAll('_', ' '),
@@ -617,9 +602,7 @@ class _PagosScreenState extends State<PagosScreen> {
                 isDense: true,
                 style: const TextStyle(color: Colors.white, fontSize: 12),
                 icon: const Icon(Icons.expand_more, color: _cyan, size: 16),
-                items: _pageSizes
-                    .map((s) => DropdownMenuItem(value: s, child: Text('$s / pág')))
-                    .toList(),
+                items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
                 onChanged: (v) {
                   if (v == null) return;
                   setState(() { _pageSize = v; _currentPage = 0; });
@@ -628,14 +611,12 @@ class _PagosScreenState extends State<PagosScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          _btnPag(Icons.chevron_left, _currentPage > 0,
-              () => setState(() => _currentPage--)),
+          _btnPag(Icons.chevron_left, _currentPage > 0, () => setState(() => _currentPage--)),
           Expanded(child: Center(child: Text(
             'Pág. ${_currentPage + 1} / $_totalPages',
             style: const TextStyle(color: Colors.white38, fontSize: 12),
           ))),
-          _btnPag(Icons.chevron_right, _currentPage < _totalPages - 1,
-              () => setState(() => _currentPage++)),
+          _btnPag(Icons.chevron_right, _currentPage < _totalPages - 1, () => setState(() => _currentPage++)),
         ]),
       );
 

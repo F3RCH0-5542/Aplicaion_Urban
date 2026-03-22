@@ -37,9 +37,7 @@ class _InventarioScreenState extends State<InventarioScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      if (_tabController.index == 1 && _stockBajo.isEmpty) {
-        _cargarStockBajo();
-      }
+      if (_tabController.index == 1 && _stockBajo.isEmpty) _cargarStockBajo();
     });
     _cargarMovimientos();
   }
@@ -117,38 +115,33 @@ class _InventarioScreenState extends State<InventarioScreen>
   }
 
   Widget _buildSelectorTipo(String tipo, void Function(String) setTipo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Tipo de movimiento',
-            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        Row(children: [
-          _tipoBtn('entrada', tipo, Icons.arrow_downward_rounded, const Color(0xFF10B981), setTipo),
-          const SizedBox(width: 8),
-          _tipoBtn('salida', tipo, Icons.arrow_upward_rounded, _pink, setTipo),
-          const SizedBox(width: 8),
-          _tipoBtn('ajuste', tipo, Icons.tune, _cyan, setTipo),
-        ]),
-        Container(
-          margin: const EdgeInsets.only(top: 8, bottom: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: _colorTipo(tipo).withOpacity(0.08),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _colorTipo(tipo).withOpacity(0.3)),
-          ),
-          child: Row(children: [
-            Icon(_iconoTipo(tipo), color: _colorTipo(tipo), size: 14),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(_descripcionTipo(tipo),
-                  style: TextStyle(color: _colorTipo(tipo).withOpacity(0.9), fontSize: 12)),
-            ),
-          ]),
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Tipo de movimiento',
+          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+      const SizedBox(height: 8),
+      Row(children: [
+        _tipoBtn('entrada', tipo, Icons.arrow_downward_rounded, const Color(0xFF10B981), setTipo),
+        const SizedBox(width: 8),
+        _tipoBtn('salida', tipo, Icons.arrow_upward_rounded, _pink, setTipo),
+        const SizedBox(width: 8),
+        _tipoBtn('ajuste', tipo, Icons.tune, _cyan, setTipo),
+      ]),
+      Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: _colorTipo(tipo).withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _colorTipo(tipo).withOpacity(0.3)),
         ),
-      ],
-    );
+        child: Row(children: [
+          Icon(_iconoTipo(tipo), color: _colorTipo(tipo), size: 14),
+          const SizedBox(width: 8),
+          Expanded(child: Text(_descripcionTipo(tipo),
+              style: TextStyle(color: _colorTipo(tipo).withOpacity(0.9), fontSize: 12))),
+        ]),
+      ),
+    ]);
   }
 
   Widget _buildProductoSeleccionado(ProductoInventario? p, void Function() onLimpiar) {
@@ -162,10 +155,7 @@ class _InventarioScreenState extends State<InventarioScreen>
         border: Border.all(color: _cyan.withOpacity(0.5)),
       ),
       child: Row(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: _buildImagen(p.imagen, size: 44),
-        ),
+        ClipRRect(borderRadius: BorderRadius.circular(6), child: _buildImagen(p.imagen, size: 44)),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(p.nombreProducto,
@@ -173,10 +163,8 @@ class _InventarioScreenState extends State<InventarioScreen>
           Text('Stock actual: ${p.stockDisponible}',
               style: const TextStyle(color: _cyan, fontSize: 11)),
         ])),
-        GestureDetector(
-          onTap: onLimpiar,
-          child: const Icon(Icons.close, color: Colors.white38, size: 18),
-        ),
+        GestureDetector(onTap: onLimpiar,
+            child: const Icon(Icons.close, color: Colors.white38, size: 18)),
       ]),
     );
   }
@@ -246,9 +234,11 @@ class _InventarioScreenState extends State<InventarioScreen>
     ]);
   }
 
-  Widget _buildCamposCantidadMotivo(String tipo, TextEditingController cantidadCtrl, TextEditingController motivoCtrl) {
+  Widget _buildCamposCantidadMotivo(
+      String tipo, TextEditingController cantidadCtrl, TextEditingController motivoCtrl) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Cantidad', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+      const Text('Cantidad',
+          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
       TextFormField(
         controller: cantidadCtrl,
@@ -270,7 +260,8 @@ class _InventarioScreenState extends State<InventarioScreen>
         ),
       ),
       const SizedBox(height: 12),
-      const Text('Motivo (opcional)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+      const Text('Motivo (opcional)',
+          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
       TextFormField(
         controller: motivoCtrl,
@@ -409,9 +400,7 @@ class _InventarioScreenState extends State<InventarioScreen>
         backgroundColor: _card,
         title: const Text('Inventario', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh, color: _cyan), onPressed: _cargarMovimientos),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.refresh, color: _cyan), onPressed: _cargarMovimientos)],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: _cyan, indicatorWeight: 3,
@@ -429,10 +418,7 @@ class _InventarioScreenState extends State<InventarioScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildTabMovimientos(), _buildTabStockBajo()],
-      ),
+      body: TabBarView(controller: _tabController, children: [_buildTabMovimientos(), _buildTabStockBajo()]),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirFormulario,
         backgroundColor: _cyan,
@@ -458,56 +444,61 @@ class _InventarioScreenState extends State<InventarioScreen>
     );
   }
 
-  Widget _buildTabMovimientos() {
-    return Column(children: [
-      Container(
-        color: _card,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: ['todos', 'entrada', 'salida', 'ajuste'].map((f) {
-              final activo = _filtroTipo == f;
-              final color  = _colorTipo(f);
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: () { setState(() => _filtroTipo = f); _cargarMovimientos(); },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: activo ? color.withOpacity(0.15) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: activo ? color : const Color(0xFF2A2A2A)),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      if (f != 'todos') ...[
-                        Icon(_iconoTipo(f), color: activo ? color : Colors.white38, size: 14),
-                        const SizedBox(width: 5),
-                      ],
-                      Text(
-                        f == 'todos' ? 'Todos' : f[0].toUpperCase() + f.substring(1),
-                        style: TextStyle(
-                          color: activo ? color : Colors.white54,
-                          fontWeight: activo ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ]),
+  // ── FIX L461: _buildFiltrosTipo extraído de _buildTabMovimientos ──────
+  Widget _buildFiltrosTipo() {
+    return Container(
+      color: _card,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: ['todos', 'entrada', 'salida', 'ajuste'].map((f) {
+            final activo = _filtroTipo == f;
+            final color  = _colorTipo(f);
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () { setState(() => _filtroTipo = f); _cargarMovimientos(); },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: activo ? color.withOpacity(0.15) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: activo ? color : const Color(0xFF2A2A2A)),
                   ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (f != 'todos') ...[
+                      Icon(_iconoTipo(f), color: activo ? color : Colors.white38, size: 14),
+                      const SizedBox(width: 5),
+                    ],
+                    Text(
+                      f == 'todos' ? 'Todos' : f[0].toUpperCase() + f.substring(1),
+                      style: TextStyle(
+                        color: activo ? color : Colors.white54,
+                        fontWeight: activo ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ]),
                 ),
-              );
-            }).toList(),
-          ),
+              ),
+            );
+          }).toList(),
         ),
       ),
+    );
+  }
+
+  // ✅ FIX L461: complejidad reducida extrayendo _buildFiltrosTipo
+  Widget _buildTabMovimientos() {
+    return Column(children: [
+      _buildFiltrosTipo(),
       Expanded(child: _buildListaMovimientos()),
       if (!_isLoading && _movimientos.isNotEmpty) _buildPaginacion(),
     ]);
   }
 
-  // ── FIX L597: _buildCardMovimiento partido en sub-widgets ─────────────
   Widget _buildChipTipo(Movimiento m, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -526,13 +517,11 @@ class _InventarioScreenState extends State<InventarioScreen>
       Row(children: [
         _buildChipTipo(m, color),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            m.nombreProducto ?? 'Producto #${m.idProducto}',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        Expanded(child: Text(
+          m.nombreProducto ?? 'Producto #${m.idProducto}',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+          overflow: TextOverflow.ellipsis,
+        )),
       ]),
       const SizedBox(height: 5),
       Row(children: [
@@ -547,7 +536,9 @@ class _InventarioScreenState extends State<InventarioScreen>
         Row(children: [
           const Icon(Icons.notes, color: Colors.white24, size: 12),
           const SizedBox(width: 4),
-          Expanded(child: Text(m.motivo!, style: const TextStyle(color: Colors.white38, fontSize: 11), overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(m.motivo!,
+              style: const TextStyle(color: Colors.white38, fontSize: 11),
+              overflow: TextOverflow.ellipsis)),
         ]),
       ],
       if (m.fechaMovimiento != null) ...[
@@ -555,7 +546,8 @@ class _InventarioScreenState extends State<InventarioScreen>
         Row(children: [
           const Icon(Icons.access_time, color: Colors.white24, size: 11),
           const SizedBox(width: 4),
-          Text(_formatFecha(m.fechaMovimiento!), style: const TextStyle(color: Colors.white24, fontSize: 10)),
+          Text(_formatFecha(m.fechaMovimiento!),
+              style: const TextStyle(color: Colors.white24, fontSize: 10)),
         ]),
       ],
     ]);
@@ -575,26 +567,20 @@ class _InventarioScreenState extends State<InventarioScreen>
         child: IntrinsicHeight(
           child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Container(width: 4, color: color),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: _buildImagen(m.imagen, size: 56),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildInfoMovimiento(m, color)),
-                ]),
-              ),
-            ),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(children: [
+                ClipRRect(borderRadius: BorderRadius.circular(10), child: _buildImagen(m.imagen, size: 56)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildInfoMovimiento(m, color)),
+              ]),
+            )),
           ]),
         ),
       ),
     );
   }
 
-  // ── FIX L764: _buildPaginacion partido en sub-widgets ─────────────────
   Widget _buildSelectorPagina() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -606,8 +592,7 @@ class _InventarioScreenState extends State<InventarioScreen>
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
           value: _porPagina,
-          dropdownColor: _card,
-          isDense: true,
+          dropdownColor: _card, isDense: true,
           style: const TextStyle(color: Colors.white, fontSize: 12),
           icon: const Icon(Icons.expand_more, color: _cyan, size: 16),
           items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
@@ -638,14 +623,12 @@ class _InventarioScreenState extends State<InventarioScreen>
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: sel ? _cyan : const Color(0xFF2A2A2A)),
               ),
-              child: Center(
-                child: Text('${i + 1}',
-                    style: TextStyle(
-                      color: sel ? Colors.black : Colors.white54,
-                      fontSize: sel ? 13 : 12,
-                      fontWeight: sel ? FontWeight.bold : FontWeight.normal,
-                    )),
-              ),
+              child: Center(child: Text('${i + 1}',
+                  style: TextStyle(
+                    color: sel ? Colors.black : Colors.white54,
+                    fontSize: sel ? 13 : 12,
+                    fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+                  ))),
             ),
           );
         }),
@@ -656,10 +639,7 @@ class _InventarioScreenState extends State<InventarioScreen>
   Widget _buildPaginacion() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        color: _card,
-        border: Border(top: BorderSide(color: Color(0xFF2A2A2A))),
-      ),
+      decoration: const BoxDecoration(color: _card, border: Border(top: BorderSide(color: Color(0xFF2A2A2A)))),
       child: Row(children: [
         _buildSelectorPagina(),
         const SizedBox(width: 8),
@@ -685,21 +665,19 @@ class _InventarioScreenState extends State<InventarioScreen>
       );
 
   Widget _buildStockBajoVacio() {
-    return Center(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), shape: BoxShape.circle),
-          child: const Icon(Icons.check_circle_outline, size: 56, color: Color(0xFF10B981)),
-        ),
-        const SizedBox(height: 16),
-        const Text('¡Todo el stock está bien!',
-            style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 4),
-        const Text('No hay productos con stock bajo',
-            style: TextStyle(color: Colors.white38, fontSize: 13)),
-      ]),
-    );
+    return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), shape: BoxShape.circle),
+        child: const Icon(Icons.check_circle_outline, size: 56, color: Color(0xFF10B981)),
+      ),
+      const SizedBox(height: 16),
+      const Text('¡Todo el stock está bien!',
+          style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600)),
+      const SizedBox(height: 4),
+      const Text('No hay productos con stock bajo',
+          style: TextStyle(color: Colors.white38, fontSize: 13)),
+    ]));
   }
 
   Widget _buildCardStockBajo(dynamic item) {
@@ -715,8 +693,7 @@ class _InventarioScreenState extends State<InventarioScreen>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _card,
-        borderRadius: BorderRadius.circular(12),
+        color: _card, borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(children: [
@@ -737,10 +714,8 @@ class _InventarioScreenState extends State<InventarioScreen>
           const SizedBox(height: 6),
           Stack(children: [
             Container(height: 5, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4))),
-            FractionallySizedBox(
-              widthFactor: pct,
-              child: Container(height: 5, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
-            ),
+            FractionallySizedBox(widthFactor: pct,
+              child: Container(height: 5, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)))),
           ]),
           const SizedBox(height: 4),
           Text(critico ? '🔴 Stock crítico' : '🟠 Stock bajo',
