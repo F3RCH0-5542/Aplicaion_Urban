@@ -3,12 +3,16 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
-  build:
+  sonarqube:
+    name: SonarQube
     runs-on: ubuntu-latest
     steps:
-      - name: Clonar repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Instalar Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -17,7 +21,7 @@ jobs:
         run: flutter pub get
       - name: Analizar codigo
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
