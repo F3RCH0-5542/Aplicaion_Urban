@@ -448,7 +448,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: sel ? _purple.withValues(alpha: 0.15) : const Color(0xFF1a1a1a),
+                color: sel ? _purple.withOpacity( 0.15) : const Color(0xFF1a1a1a),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: sel ? _purple : const Color(0xFF2a2a2a),
@@ -467,7 +467,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
-                    color: sel ? _purple.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
+                    color: sel ? _purple.withOpacity( 0.25) : Colors.white.withOpacity( 0.05),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text('$count',
@@ -532,14 +532,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
         color: const Color(0xFF1a1a1a),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: stockBajo ? _red.withValues(alpha: 0.4) : _purple.withValues(alpha: 0.2),
+          color: stockBajo ? _red.withOpacity( 0.4) : _purple.withOpacity( 0.2),
         ),
       ),
       child: Row(children: [
         Container(
           width: 48, height: 48,
           decoration: BoxDecoration(
-            color: _purple.withValues(alpha: 0.12),
+            color: _purple.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(Icons.inventory_2, color: _purple, size: 24),
@@ -550,7 +550,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: _purple.withValues(alpha: 0.1),
+                color: _purple.withOpacity( 0.1),
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text('#${p['id_producto']}',
@@ -574,7 +574,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: Colors.white.withOpacity( 0.06),
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(p['categoria'],
@@ -585,7 +585,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
-                color: stockBajo ? _red.withValues(alpha: 0.12) : _green.withValues(alpha: 0.12),
+                color: stockBajo ? _red.withOpacity( 0.12) : _green.withOpacity( 0.12),
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text('Stock: $stock',
@@ -616,9 +616,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
     child: Container(
       width: 32, height: 32,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity( 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withOpacity( 0.25)),
       ),
       child: Icon(icon, color: color, size: 16),
     ),
