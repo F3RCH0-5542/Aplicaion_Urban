@@ -51,12 +51,14 @@ class _PedidosScreenState extends State<PedidosScreen> {
   void initState() {
     super.initState();
     _cargarPedidos();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.toLowerCase();
-        _currentPage = 0;
-        _aplicarFiltro();
-      });
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+      _currentPage = 0;
+      _aplicarFiltro();
     });
   }
 
@@ -237,23 +239,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
           if (p.usuario?.correo != null)
             Text(p.usuario!.correo, style: const TextStyle(color: Colors.white38, fontSize: 12)),
         ])),
-        GestureDetector(
-          onTap: () { Navigator.pop(context); _cambiarEstado(pedido); },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withOpacity(0.6)),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(p.estado.replaceAll('_', ' ').toUpperCase(),
-                  style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 4),
-              Icon(Icons.edit, size: 11, color: color),
-            ]),
-          ),
-        ),
+        _buildBotonEstadoHeader(p, pedido, color),
       ]),
       const SizedBox(height: 8),
       Row(children: [
@@ -266,6 +252,26 @@ class _PedidosScreenState extends State<PedidosScreen> {
         Text(p.metodoPago ?? 'N/A', style: const TextStyle(color: Colors.white54, fontSize: 12)),
       ]),
     ]);
+  }
+
+  Widget _buildBotonEstadoHeader(Pedido p, Pedido pedido, Color color) {
+    return GestureDetector(
+      onTap: () { Navigator.pop(context); _cambiarEstado(pedido); },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.6)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(p.estado.replaceAll('_', ' ').toUpperCase(),
+              style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 4),
+          Icon(Icons.edit, size: 11, color: color),
+        ]),
+      ),
+    );
   }
 
   Widget _buildListaProductos(Pedido p) {
@@ -326,58 +332,74 @@ class _PedidosScreenState extends State<PedidosScreen> {
         builder: (_, controller) => SingleChildScrollView(
           controller: controller,
           padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-            )),
-            const SizedBox(height: 16),
-            _buildHeaderPedido(p, pedido),
-            const SizedBox(height: 20),
-            _seccionTitulo('PRODUCTOS', Icons.shopping_bag),
-            const SizedBox(height: 8),
-            _buildListaProductos(p),
-            const SizedBox(height: 20),
-            if (p.envio != null) ...[
-              _seccionTitulo('ENVÍO', Icons.local_shipping),
-              const SizedBox(height: 8),
-              _infoCard([
-                _infoRow(Icons.location_on, 'Dirección', p.envio!.direccion ?? 'N/A'),
-                _infoRow(Icons.location_city, 'Ciudad', p.envio!.ciudad ?? 'N/A'),
-                if (p.envio!.telefono != null && p.envio!.telefono!.isNotEmpty)
-                  _infoRow(Icons.phone, 'Teléfono', p.envio!.telefono!),
-                _infoRow(Icons.local_shipping, 'Estado', p.envio!.estadoEnvio ?? 'pendiente'),
-              ]),
-              const SizedBox(height: 20),
-            ],
-            if (p.pago != null) ...[
-              _seccionTitulo('PAGO', Icons.credit_card),
-              const SizedBox(height: 8),
-              _infoCard([
-                _infoRow(Icons.payment, 'Método', p.pago!.metodoPago ?? 'N/A'),
-                _infoRow(Icons.attach_money, 'Monto', '\$${p.pago!.monto?.toStringAsFixed(0) ?? '0'}'),
-                _infoRow(Icons.check_circle, 'Estado', p.pago!.estadoPago ?? 'pendiente'),
-              ]),
-              const SizedBox(height: 20),
-            ],
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
-              ),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                const Text('TOTAL',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('\$${p.total.toStringAsFixed(0)}',
-                    style: const TextStyle(color: Color(0xFFEF4444), fontSize: 22, fontWeight: FontWeight.bold)),
-              ]),
-            ),
-            const SizedBox(height: 8),
-          ]),
+          child: _buildContenidoDetalle(p, pedido),
         ),
       ),
+    );
+  }
+
+  Widget _buildContenidoDetalle(Pedido p, Pedido pedido) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Center(child: Container(
+        width: 40, height: 4,
+        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+      )),
+      const SizedBox(height: 16),
+      _buildHeaderPedido(p, pedido),
+      const SizedBox(height: 20),
+      _seccionTitulo('PRODUCTOS', Icons.shopping_bag),
+      const SizedBox(height: 8),
+      _buildListaProductos(p),
+      const SizedBox(height: 20),
+      if (p.envio != null) ...[
+        _seccionTitulo('ENVÍO', Icons.local_shipping),
+        const SizedBox(height: 8),
+        _buildSeccionEnvio(p),
+        const SizedBox(height: 20),
+      ],
+      if (p.pago != null) ...[
+        _seccionTitulo('PAGO', Icons.credit_card),
+        const SizedBox(height: 8),
+        _buildSeccionPago(p),
+        const SizedBox(height: 20),
+      ],
+      _buildTotalCard(p),
+      const SizedBox(height: 8),
+    ]);
+  }
+
+  Widget _buildSeccionEnvio(Pedido p) {
+    return _infoCard([
+      _infoRow(Icons.location_on, 'Dirección', p.envio!.direccion ?? 'N/A'),
+      _infoRow(Icons.location_city, 'Ciudad', p.envio!.ciudad ?? 'N/A'),
+      if (p.envio!.telefono != null && p.envio!.telefono!.isNotEmpty)
+        _infoRow(Icons.phone, 'Teléfono', p.envio!.telefono!),
+      _infoRow(Icons.local_shipping, 'Estado', p.envio!.estadoEnvio ?? 'pendiente'),
+    ]);
+  }
+
+  Widget _buildSeccionPago(Pedido p) {
+    return _infoCard([
+      _infoRow(Icons.payment, 'Método', p.pago!.metodoPago ?? 'N/A'),
+      _infoRow(Icons.attach_money, 'Monto', '\$${p.pago!.monto?.toStringAsFixed(0) ?? '0'}'),
+      _infoRow(Icons.check_circle, 'Estado', p.pago!.estadoPago ?? 'pendiente'),
+    ]);
+  }
+
+  Widget _buildTotalCard(Pedido p) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF4444).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+      ),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        const Text('TOTAL',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('\$${p.total.toStringAsFixed(0)}',
+            style: const TextStyle(color: Color(0xFFEF4444), fontSize: 22, fontWeight: FontWeight.bold)),
+      ]),
     );
   }
 
@@ -434,6 +456,58 @@ class _PedidosScreenState extends State<PedidosScreen> {
     ));
   }
 
+  // ── Paginación ────────────────────────────────────────────────────────────
+
+  Widget _buildNumeroPagina(int i) {
+    final isSelected = i == _currentPage;
+    final color = const Color(0xFFEF4444);
+    return GestureDetector(
+      onTap: () => setState(() => _currentPage = i),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.symmetric(horizontal: 3),
+        width: isSelected ? 32 : 28,
+        height: isSelected ? 32 : 28,
+        decoration: BoxDecoration(
+          color: isSelected ? color : const Color(0xFF1a1a1a),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSelected ? color : const Color(0xFF2a2a2a)),
+        ),
+        child: Center(child: Text('${i + 1}',
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.white54,
+              fontSize: isSelected ? 13 : 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ))),
+      ),
+    );
+  }
+
+  Widget _buildSelectorPaginaTamano() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF2a2a2a)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _pageSize,
+          dropdownColor: const Color(0xFF1a1a1a),
+          isDense: true,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+          icon: const Icon(Icons.expand_more, color: Color(0xFFEF4444), size: 16),
+          items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
+          onChanged: (val) {
+            if (val == null) return;
+            setState(() { _pageSize = val; _currentPage = 0; });
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildPaginacion() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -442,28 +516,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
         border: Border(top: BorderSide(color: Color(0xFF1e1e1e))),
       ),
       child: Row(children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1a1a1a),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFF2a2a2a)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _pageSize,
-              dropdownColor: const Color(0xFF1a1a1a),
-              isDense: true,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-              icon: const Icon(Icons.expand_more, color: Color(0xFFEF4444), size: 16),
-              items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
-              onChanged: (val) {
-                if (val == null) return;
-                setState(() { _pageSize = val; _currentPage = 0; });
-              },
-            ),
-          ),
-        ),
+        _buildSelectorPaginaTamano(),
         const SizedBox(width: 8),
         _btnPagina(icon: Icons.chevron_left, enabled: _currentPage > 0,
             onTap: () => setState(() => _currentPage--)),
@@ -472,29 +525,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_totalPages, (i) {
-                final isSelected = i == _currentPage;
-                return GestureDetector(
-                  onTap: () => setState(() => _currentPage = i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: isSelected ? 32 : 28, height: isSelected ? 32 : 28,
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFEF4444) : const Color(0xFF1a1a1a),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: isSelected ? const Color(0xFFEF4444) : const Color(0xFF2a2a2a)),
-                    ),
-                    child: Center(child: Text('${i + 1}',
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white54,
-                          fontSize: isSelected ? 13 : 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ))),
-                  ),
-                );
-              }),
+              children: List.generate(_totalPages, _buildNumeroPagina),
             ),
           ),
         ),
@@ -518,7 +549,8 @@ class _PedidosScreenState extends State<PedidosScreen> {
         ),
       );
 
-  // ── FIX L458: _buildBuscador y _buildFiltros extraídos de build() ──────
+  // ── Buscador ──────────────────────────────────────────────────────────────
+
   Widget _buildBuscador() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -557,32 +589,32 @@ class _PedidosScreenState extends State<PedidosScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         itemCount: _estados.length,
-        itemBuilder: (_, i) {
-          final estado   = _estados[i];
-          final selected = _filtroEstado == estado;
-          final color    = estado == 'todos'
-              ? const Color(0xFFEF4444)
-              : (_coloresEstado[estado] ?? Colors.grey);
-          return GestureDetector(
-            onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-              decoration: BoxDecoration(
-                color: selected ? color.withOpacity(0.2) : const Color(0xFF1a1a1a),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: selected ? color : const Color(0xFF2a2a2a), width: selected ? 1.5 : 1),
-              ),
-              child: Text(
-                estado == 'todos' ? 'TODOS' : estado.replaceAll('_', ' ').toUpperCase(),
-                style: TextStyle(
-                    color: selected ? color : Colors.white54,
-                    fontSize: 11,
-                    fontWeight: selected ? FontWeight.bold : FontWeight.normal),
-              ),
-            ),
-          );
-        },
+        itemBuilder: (_, i) => _buildChipFiltro(_estados[i]),
+      ),
+    );
+  }
+
+  Widget _buildChipFiltro(String estado) {
+    final selected = _filtroEstado == estado;
+    final color    = estado == 'todos'
+        ? const Color(0xFFEF4444)
+        : (_coloresEstado[estado] ?? Colors.grey);
+    final label    = estado == 'todos' ? 'TODOS' : estado.replaceAll('_', ' ').toUpperCase();
+    return GestureDetector(
+      onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.2) : const Color(0xFF1a1a1a),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? color : const Color(0xFF2a2a2a), width: selected ? 1.5 : 1),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                color: selected ? color : Colors.white54,
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
       ),
     );
   }
@@ -601,7 +633,8 @@ class _PedidosScreenState extends State<PedidosScreen> {
     );
   }
 
-  // ✅ FIX L458: build() simplificado
+  // ── Scaffold ──────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -630,7 +663,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
     );
   }
 
-  // ✅ FIX L572/L643: ternarios anidados extraídos
   Widget _buildListaPedidos(AuthProvider auth) {
     if (_pedidosFiltrados.isEmpty) {
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -646,7 +678,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
     );
   }
 
-  // ── FIX L545: _buildPedidoCard partido en sub-widgets ─────────────────
   Widget _buildPedidoCardHeader(Pedido pedido, Color color) {
     return Row(children: [
       Container(
@@ -713,7 +744,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
     ]);
   }
 
-  // ✅ FIX L545: complejidad reducida extrayendo sub-widgets
   Widget _buildPedidoCard(Pedido pedido, AuthProvider auth) {
     final color = _coloresEstado[pedido.estado] ?? Colors.grey;
     return Card(
