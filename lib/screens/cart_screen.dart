@@ -16,7 +16,6 @@ class _CartScreenState extends State<CartScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _procesando = false;
 
-  // Controladores para el formulario
   final TextEditingController _direccionController = TextEditingController();
   final TextEditingController _ciudadController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
@@ -31,15 +30,11 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _finalizarCompra() async {
-    // Validar formulario
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
-    // Verificar autenticación
     if (!authProvider.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -66,7 +61,7 @@ class _CartScreenState extends State<CartScreen> {
         'metodo_pago': _metodoPago,
       };
 
-      print('📤 Enviando pedido: $datosCompra');
+      // print('📤 Enviando pedido: $datosCompra');
 
       final response = await http.post(
         Uri.parse('http://localhost:3001/api/pedidos'),
@@ -78,12 +73,10 @@ class _CartScreenState extends State<CartScreen> {
       );
 
       final data = json.decode(response.body);
-      print('📥 Respuesta: $data');
+      // print('📥 Respuesta: $data');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
-
-        // Mostrar mensaje de éxito
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -124,7 +117,7 @@ class _CartScreenState extends State<CartScreen> {
         );
       }
     } catch (e) {
-      print('❌ Error: $e');
+      // print('❌ Error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -133,9 +126,7 @@ class _CartScreenState extends State<CartScreen> {
         ),
       );
     } finally {
-      if (mounted) {
-        setState(() => _procesando = false);
-      }
+      if (mounted) setState(() => _procesando = false);
     }
   }
 
@@ -165,8 +156,7 @@ class _CartScreenState extends State<CartScreen> {
           TextButton.icon(
             onPressed: () => Navigator.pushNamed(context, '/'),
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            label: const Text('Volver a la tienda',
-                style: TextStyle(color: Colors.white)),
+            label: const Text('Volver a la tienda', style: TextStyle(color: Colors.white)),
           ),
           const SizedBox(width: 16),
         ],
@@ -176,19 +166,12 @@ class _CartScreenState extends State<CartScreen> {
           padding: EdgeInsets.all(isMobile ? 16 : 24),
           child: Column(
             children: [
-              // Título
               const Text(
                 '🛒 Tu Carrito de Compras',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-
-              // Contenido del carrito
               if (cartProvider.isEmpty)
                 _buildEmptyCart()
               else
@@ -206,22 +189,14 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Carrito vacío
   Widget _buildEmptyCart() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.shopping_cart_outlined,
-            size: 100,
-            color: Colors.grey,
-          ),
+          const Icon(Icons.shopping_cart_outlined, size: 100, color: Colors.grey),
           const SizedBox(height: 24),
-          const Text(
-            'Tu carrito está vacío',
-            style: TextStyle(fontSize: 24, color: Colors.white70),
-          ),
+          const Text('Tu carrito está vacío', style: TextStyle(fontSize: 24, color: Colors.white70)),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => Navigator.pushNamed(context, '/'),
@@ -237,7 +212,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Grid de productos en el carrito
   Widget _buildCartItems(CartProvider cartProvider, bool isMobile) {
     return GridView.builder(
       shrinkWrap: true,
@@ -257,7 +231,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Card de producto individual
   Widget _buildCartCard(CartItem item, String key, CartProvider cartProvider) {
     return Card(
       color: const Color(0xFF1a1a1a),
@@ -266,7 +239,6 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Imagen
           Container(
             height: 180,
             padding: const EdgeInsets.all(16),
@@ -277,45 +249,24 @@ class _CartScreenState extends State<CartScreen> {
             child: Image.asset(
               item.imagen,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.image,
-                size: 60,
-                color: Colors.grey,
-              ),
+              errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 60, color: Colors.grey),
             ),
           ),
-
-          // Información
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nombre
                   Text(
                     item.nombre,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-
-                  // Precio unitario
-                  Text(
-                    '\$${_formatPrice(item.precio)} COP',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
+                  Text('\$${_formatPrice(item.precio)} COP', style: const TextStyle(color: Colors.white70, fontSize: 14)),
                   const Spacer(),
-
-                  // Controles de cantidad
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -325,20 +276,9 @@ class _CartScreenState extends State<CartScreen> {
                         color: Colors.white70,
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2a2a2a),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${item.cantidad}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(color: const Color(0xFF2a2a2a), borderRadius: BorderRadius.circular(8)),
+                        child: Text('${item.cantidad}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                       IconButton(
                         onPressed: () => cartProvider.increaseQuantity(key),
@@ -347,20 +287,12 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ],
                   ),
-
-                  // Subtotal
                   Text(
                     'Subtotal: \$${_formatPrice(item.subtotal)} COP',
-                    style: const TextStyle(
-                      color: Color(0xFF10b981),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: Color(0xFF10b981), fontSize: 16, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
-
-                  // Botón eliminar
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -383,7 +315,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Formulario de checkout
   Widget _buildCheckoutForm(CartProvider cartProvider, bool isMobile) {
     return Card(
       color: const Color(0xFF1a1a1a),
@@ -396,39 +327,20 @@ class _CartScreenState extends State<CartScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Título
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10b981),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: const Color(0xFF10b981), borderRadius: BorderRadius.circular(8)),
                 child: const Row(
                   children: [
                     Icon(Icons.local_shipping, color: Colors.white),
                     SizedBox(width: 12),
-                    Text(
-                      'Información de Envío y Pago',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text('Información de Envío y Pago', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Layout responsive
               isMobile
-                  ? Column(
-                      children: [
-                        _buildFormSection(),
-                        const SizedBox(height: 24),
-                        _buildSummarySection(cartProvider),
-                      ],
-                    )
+                  ? Column(children: [_buildFormSection(), const SizedBox(height: 24), _buildSummarySection(cartProvider)])
                   : Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -444,22 +356,12 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Sección del formulario
   Widget _buildFormSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '📍 Dirección de Envío',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        const Text('📍 Dirección de Envío', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-
-        // Dirección
         TextFormField(
           controller: _direccionController,
           maxLines: 3,
@@ -471,21 +373,11 @@ class _CartScreenState extends State<CartScreen> {
             hintStyle: const TextStyle(color: Colors.grey),
             filled: true,
             fillColor: const Color(0xFF2a2a2a),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Por favor ingresa tu dirección';
-            }
-            return null;
-          },
+          validator: (value) => (value == null || value.trim().isEmpty) ? 'Por favor ingresa tu dirección' : null,
         ),
         const SizedBox(height: 16),
-
-        // Ciudad
         TextFormField(
           controller: _ciudadController,
           style: const TextStyle(color: Colors.white),
@@ -496,21 +388,11 @@ class _CartScreenState extends State<CartScreen> {
             hintStyle: const TextStyle(color: Colors.grey),
             filled: true,
             fillColor: const Color(0xFF2a2a2a),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Por favor ingresa tu ciudad';
-            }
-            return null;
-          },
+          validator: (value) => (value == null || value.trim().isEmpty) ? 'Por favor ingresa tu ciudad' : null,
         ),
         const SizedBox(height: 16),
-
-        // Teléfono
         TextFormField(
           controller: _telefonoController,
           keyboardType: TextInputType.phone,
@@ -522,34 +404,15 @@ class _CartScreenState extends State<CartScreen> {
             hintStyle: const TextStyle(color: Colors.grey),
             filled: true,
             fillColor: const Color(0xFF2a2a2a),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Por favor ingresa tu teléfono';
-            }
-            return null;
-          },
+          validator: (value) => (value == null || value.trim().isEmpty) ? 'Por favor ingresa tu teléfono' : null,
         ),
         const SizedBox(height: 24),
-
         const Divider(color: Colors.white24),
         const SizedBox(height: 24),
-
-        // Método de pago
-        const Text(
-          '💳 Método de Pago',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        const Text('💳 Método de Pago', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-
         DropdownButtonFormField<String>(
           value: _metodoPago,
           dropdownColor: const Color(0xFF2a2a2a),
@@ -557,141 +420,69 @@ class _CartScreenState extends State<CartScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFF2a2a2a),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
           ),
           items: const [
             DropdownMenuItem(value: 'efectivo', child: Text('💵 Efectivo')),
             DropdownMenuItem(value: 'nequi', child: Text('📱 Nequi')),
             DropdownMenuItem(value: 'daviplata', child: Text('📱 Daviplata')),
             DropdownMenuItem(value: 'tarjeta', child: Text('💳 Tarjeta')),
-            DropdownMenuItem(
-                value: 'transferencia', child: Text('🏦 Transferencia')),
+            DropdownMenuItem(value: 'transferencia', child: Text('🏦 Transferencia')),
           ],
           onChanged: (value) {
-            if (value != null) {
-              setState(() => _metodoPago = value);
-            }
+            if (value != null) setState(() => _metodoPago = value);
           },
         ),
       ],
     );
   }
 
-  // Sección de resumen
   Widget _buildSummarySection(CartProvider cartProvider) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2a2a2a),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFF2a2a2a), borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '📋 Resumen del pedido',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          const Text('📋 Resumen del pedido', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-
-          // Lista de productos
           ...cartProvider.itemsList.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        '• ${item.nombre} x${item.cantidad}',
-                        style: const TextStyle(color: Colors.white70),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Text('• ${item.nombre} x${item.cantidad}', style: const TextStyle(color: Colors.white70), overflow: TextOverflow.ellipsis),
                     ),
-                    Text(
-                      '\$${_formatPrice(item.subtotal)}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text('\$${_formatPrice(item.subtotal)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
               )),
-
           const Divider(color: Colors.white24, height: 32),
-
-          // Subtotal
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Subtotal:',
-                style: TextStyle(color: Colors.white70),
-              ),
-              Text(
-                '\$${_formatPrice(cartProvider.totalAmount)} COP',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Subtotal:', style: TextStyle(color: Colors.white70)),
+              Text('\$${_formatPrice(cartProvider.totalAmount)} COP', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),
-
-          // Envío
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Envío:',
-                style: TextStyle(color: Colors.white70),
-              ),
-              Text(
-                'GRATIS',
-                style: TextStyle(
-                  color: Color(0xFF10b981),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text('Envío:', style: TextStyle(color: Colors.white70)),
+              Text('GRATIS', style: TextStyle(color: Color(0xFF10b981), fontWeight: FontWeight.bold)),
             ],
           ),
-
           const Divider(color: Colors.white24, height: 32),
-
-          // Total
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total a pagar:',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '\$${_formatPrice(cartProvider.totalAmount)} COP',
-                style: const TextStyle(
-                  color: Color(0xFF10b981),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Total a pagar:', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('\$${_formatPrice(cartProvider.totalAmount)} COP', style: const TextStyle(color: Color(0xFF10b981), fontSize: 24, fontWeight: FontWeight.bold)),
             ],
           ),
-
           const SizedBox(height: 32),
-
-          // Botones
           Column(
             children: [
               SizedBox(
@@ -700,23 +491,13 @@ class _CartScreenState extends State<CartScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _procesando ? null : _finalizarCompra,
                   icon: _procesando
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.check_circle),
-                  label:
-                      Text(_procesando ? 'Procesando...' : 'Confirmar Pedido'),
+                  label: Text(_procesando ? 'Procesando...' : 'Confirmar Pedido'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10b981),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
@@ -732,20 +513,15 @@ class _CartScreenState extends State<CartScreen> {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('¿Vaciar carrito?'),
-                              content: const Text(
-                                  '¿Estás seguro de que quieres eliminar todos los productos?'),
+                              content: const Text('¿Estás seguro de que quieres eliminar todos los productos?'),
                               actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancelar'),
-                                ),
+                                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
                                 TextButton(
                                   onPressed: () {
                                     cartProvider.clear();
                                     Navigator.pop(context);
                                   },
-                                  child: const Text('Vaciar',
-                                      style: TextStyle(color: Colors.red)),
+                                  child: const Text('Vaciar', style: TextStyle(color: Colors.red)),
                                 ),
                               ],
                             ),
@@ -756,9 +532,7 @@ class _CartScreenState extends State<CartScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
@@ -770,7 +544,6 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+    return price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
   }
 }

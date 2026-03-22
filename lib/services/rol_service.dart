@@ -14,19 +14,19 @@ class RolService {
 
   static Map<String, String> _headers(String token) => {
     'Content-Type': 'application/json',
-    'x-access-token': token,  // ✅ CORREGIDO
+    'x-access-token': token,
   };
 
   // GET todos
   static Future<Map<String, dynamic>> getAll(String token) async {
     try {
-      print('🔵 GET roles: $baseUrl');
-      print('🔵 Token presente: ${token.isNotEmpty}');
+      // print('🔵 GET roles: $baseUrl');
+      // print('🔵 Token presente: ${token.isNotEmpty}');
       final response = await http
           .get(Uri.parse(baseUrl), headers: _headers(token))
           .timeout(const Duration(seconds: 10));
-      print('✅ Status roles: ${response.statusCode}');
-      print('✅ Body roles: ${response.body}');
+      // print('✅ Status roles: ${response.statusCode}');
+      // print('✅ Body roles: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

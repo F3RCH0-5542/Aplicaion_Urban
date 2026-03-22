@@ -1,6 +1,4 @@
 // lib/services/usuario_service.dart
-// El token se pasa como parámetro igual que en pqrs_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -22,15 +20,15 @@ class UsuarioService {
   // GET todos
   static Future<Map<String, dynamic>> getAll(String token) async {
     try {
-      print('🔵 GET $baseUrl');
-      print('🔵 Token presente: ${token.isNotEmpty}');
+      // print('🔵 GET $baseUrl');
+      // print('🔵 Token presente: ${token.isNotEmpty}');
 
       final response = await http
           .get(Uri.parse(baseUrl), headers: _headers(token))
           .timeout(const Duration(seconds: 10));
 
-      print('✅ Status: ${response.statusCode}');
-      print('✅ Body: ${response.body}');
+      // print('✅ Status: ${response.statusCode}');
+      // print('✅ Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
