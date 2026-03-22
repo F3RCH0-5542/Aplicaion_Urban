@@ -29,11 +29,11 @@ class _PqrsPageState extends State<PqrsPage> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
 
       // ── DEBUG ──────────────────────────────────────────────────────────
-      debugPrint('🔍 [PQRS] isLoggedIn: ${auth.isLoggedIn}');
-      debugPrint('🔍 [PQRS] userId: ${auth.userId}');
-      debugPrint('🔍 [PQRS] userFullName: ${auth.userFullName}');
-      debugPrint('🔍 [PQRS] userEmail: ${auth.userEmail}');
-      debugPrint('🔍 [PQRS] userData: ${auth.userData}');
+      debug// print('🔍 [PQRS] isLoggedIn: ${auth.isLoggedIn}');
+      debug// print('🔍 [PQRS] userId: ${auth.userId}');
+      debug// print('🔍 [PQRS] userFullName: ${auth.userFullName}');
+      debug// print('🔍 [PQRS] userEmail: ${auth.userEmail}');
+      debug// print('🔍 [PQRS] userData: ${auth.userData}');
       // ──────────────────────────────────────────────────────────────────
 
       if (auth.isLoggedIn) {
@@ -57,10 +57,10 @@ class _PqrsPageState extends State<PqrsPage> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     // ── DEBUG ──────────────────────────────────────────────────────────
-    debugPrint('🚀 [PQRS] Intentando enviar PQRS...');
-    debugPrint('🔍 [PQRS] isLoggedIn: ${auth.isLoggedIn}');
-    debugPrint('🔍 [PQRS] userId al enviar: ${auth.userId}');
-    debugPrint('🔍 [PQRS] userData al enviar: ${auth.userData}');
+    debug// print('🚀 [PQRS] Intentando enviar PQRS...');
+    debug// print('🔍 [PQRS] isLoggedIn: ${auth.isLoggedIn}');
+    debug// print('🔍 [PQRS] userId al enviar: ${auth.userId}');
+    debug// print('🔍 [PQRS] userData al enviar: ${auth.userData}');
     // ──────────────────────────────────────────────────────────────────
 
     // Bloquear si no está logueado
@@ -73,7 +73,7 @@ class _PqrsPageState extends State<PqrsPage> {
 
     try {
       final idUsuario = auth.userId;
-      debugPrint('📤 [PQRS] Enviando con id_usuario: $idUsuario');
+      debug// print('📤 [PQRS] Enviando con id_usuario: $idUsuario');
 
       final resultado = await PqrsService.crearPqrs(
         nombre: _nombreController.text.trim(),
@@ -86,7 +86,7 @@ class _PqrsPageState extends State<PqrsPage> {
       setState(() => _isLoading = false);
 
       if (resultado['success']) {
-        debugPrint('✅ [PQRS] Creada exitosamente: ${resultado['data']}');
+        debug// print('✅ [PQRS] Creada exitosamente: ${resultado['data']}');
         _mostrarDialogoExito();
         _limpiarFormulario();
       } else {
@@ -94,7 +94,7 @@ class _PqrsPageState extends State<PqrsPage> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      debugPrint('❌ [PQRS] Error: $e');
+      debug// print('❌ [PQRS] Error: $e');
       _mostrarError('Error de conexión: $e');
     }
   }

@@ -26,8 +26,8 @@ class PqrsService {
     int? idUsuario, // ← AGREGADO
   }) async {
     try {
-      print('🔵 Creando PQRS en: $baseUrl');
-      print('🔵 id_usuario: $idUsuario');
+      // print('🔵 Creando PQRS en: $baseUrl');
+      // print('🔵 id_usuario: $idUsuario');
 
       final response = await http.post(
         Uri.parse(baseUrl),
@@ -41,8 +41,8 @@ class PqrsService {
         }),
       ).timeout(const Duration(seconds: 10));
 
-      print('✅ Status Code: ${response.statusCode}');
-      print('✅ Response: ${response.body}');
+      // print('✅ Status Code: ${response.statusCode}');
+      // print('✅ Response: ${response.body}');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {'success': true, 'data': jsonDecode(response.body)};
@@ -51,7 +51,7 @@ class PqrsService {
         return {'success': false, 'message': error['msg'] ?? 'Error al crear PQRS'};
       }
     } catch (e) {
-      print('❌ Error al crear PQRS: $e');
+      // print('❌ Error al crear PQRS: $e');
       return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
@@ -59,8 +59,8 @@ class PqrsService {
   /// Obtener todos los PQRS (admin)
   static Future<List<dynamic>> obtenerPqrs(String token) async {
     try {
-      print('🔵 Obteniendo PQRS desde: $baseUrl');
-      print('🔵 Token: ${token.isNotEmpty ? "Presente" : "Vacío"}');
+      // print('🔵 Obteniendo PQRS desde: $baseUrl');
+      // print('🔵 Token: ${token.isNotEmpty ? "Presente" : "Vacío"}');
 
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -70,18 +70,18 @@ class PqrsService {
         },
       ).timeout(const Duration(seconds: 10));
 
-      print('✅ Status Code: ${response.statusCode}');
+      // print('✅ Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as List;
-        print('✅ PQRS encontradas: ${data.length}');
+        // print('✅ PQRS encontradas: ${data.length}');
         return data;
       } else {
-        print('❌ Error ${response.statusCode}: ${response.body}');
+        // print('❌ Error ${response.statusCode}: ${response.body}');
         return [];
       }
     } catch (e) {
-      print('❌ Error en obtenerPqrs: $e');
+      // print('❌ Error en obtenerPqrs: $e');
       return [];
     }
   }
@@ -94,7 +94,7 @@ class PqrsService {
     String estado = 'Resuelto',
   }) async {
     try {
-      print('🔵 Respondiendo PQRS #$idPqrs en: $baseUrl/$idPqrs/responder');
+      // print('🔵 Respondiendo PQRS #$idPqrs en: $baseUrl/$idPqrs/responder');
 
       final response = await http.post(
         Uri.parse('$baseUrl/$idPqrs/responder'),
@@ -108,7 +108,7 @@ class PqrsService {
         }),
       ).timeout(const Duration(seconds: 10));
 
-      print('✅ Status Code: ${response.statusCode}');
+      // print('✅ Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return {'success': true, 'data': jsonDecode(response.body)};
@@ -117,7 +117,7 @@ class PqrsService {
         return {'success': false, 'message': body['msg'] ?? 'Error al responder PQRS'};
       }
     } catch (e) {
-      print('❌ Error al responder PQRS: $e');
+      // print('❌ Error al responder PQRS: $e');
       return {'success': false, 'message': 'Error: $e'};
     }
   }
@@ -128,7 +128,7 @@ class PqrsService {
     required String token,
   }) async {
     try {
-      print('🔵 Eliminando PQRS #$idPqrs');
+      // print('🔵 Eliminando PQRS #$idPqrs');
 
       final response = await http.delete(
         Uri.parse('$baseUrl/$idPqrs'),
@@ -138,7 +138,7 @@ class PqrsService {
         },
       ).timeout(const Duration(seconds: 10));
 
-      print('✅ Status Code: ${response.statusCode}');
+      // print('✅ Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return {'success': true};
@@ -147,7 +147,7 @@ class PqrsService {
         return {'success': false, 'message': body['msg'] ?? 'Error al eliminar PQRS'};
       }
     } catch (e) {
-      print('❌ Error al eliminar PQRS: $e');
+      // print('❌ Error al eliminar PQRS: $e');
       return {'success': false, 'message': 'Error: $e'};
     }
   }

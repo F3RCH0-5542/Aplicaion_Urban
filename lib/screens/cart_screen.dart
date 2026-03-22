@@ -66,7 +66,7 @@ class _CartScreenState extends State<CartScreen> {
         'metodo_pago': _metodoPago,
       };
 
-      print('📤 Enviando pedido: $datosCompra');
+      // print('📤 Enviando pedido: $datosCompra');
 
       final response = await http.post(
         Uri.parse('http://localhost:3001/api/pedidos'),
@@ -78,7 +78,7 @@ class _CartScreenState extends State<CartScreen> {
       );
 
       final data = json.decode(response.body);
-      print('📥 Respuesta: $data');
+      // print('📥 Respuesta: $data');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
@@ -124,7 +124,7 @@ class _CartScreenState extends State<CartScreen> {
         );
       }
     } catch (e) {
-      print('❌ Error: $e');
+      // print('❌ Error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
