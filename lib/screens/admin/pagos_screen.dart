@@ -35,22 +35,22 @@ class _PagosScreenState extends State<PagosScreen> {
   static const _estados = ['todos', 'pendiente', 'completado', 'fallido', 'reembolsado'];
 
   static const _coloresEstado = {
-    'pendiente':    Color(0xFFF59E0B),
-    'completado':   Color(0xFF10B981),
-    'fallido':      Color(0xFFEF4444),
-    'reembolsado':  Color(0xFF8B5CF6),
+    'pendiente':   Color(0xFFF59E0B),
+    'completado':  Color(0xFF10B981),
+    'fallido':     Color(0xFFEF4444),
+    'reembolsado': Color(0xFF8B5CF6),
   };
 
   static const _iconosMetodo = {
-    'efectivo':         Icons.payments,
-    'tarjeta_credito':  Icons.credit_card,
-    'tarjeta_debito':   Icons.credit_card,
-    'transferencia':    Icons.account_balance,
-    'pse':              Icons.account_balance,
-    'nequi':            Icons.phone_android,
-    'daviplata':        Icons.phone_android,
-    'paypal':           Icons.payment,
-    'personalizacion':  Icons.palette,
+    'efectivo':        Icons.payments,
+    'tarjeta_credito': Icons.credit_card,
+    'tarjeta_debito':  Icons.credit_card,
+    'transferencia':   Icons.account_balance,
+    'pse':             Icons.account_balance,
+    'nequi':           Icons.phone_android,
+    'daviplata':       Icons.phone_android,
+    'paypal':          Icons.payment,
+    'personalizacion': Icons.palette,
   };
 
   static const _cyan = Color(0xFF06B6D4);
@@ -73,26 +73,19 @@ class _PagosScreenState extends State<PagosScreen> {
   }
 
   Map<String, String> _headers(String token) => {
-    'Content-Type': 'application/json',
-    'x-access-token': token,
-  };
+        'Content-Type': 'application/json',
+        'x-access-token': token,
+      };
 
   Future<void> _cargar() async {
     setState(() => _cargando = true);
     try {
       final token = await _getToken();
       if (token == null) { _snack('No autenticado', error: true); return; }
-      final res = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/pagos'),
-        headers: _headers(token),
-      );
+      final res = await http.get(Uri.parse('${ApiConfig.baseUrl}/pagos'), headers: _headers(token));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        setState(() {
-          _pagos = data is List ? data : [];
-          _currentPage = 0;
-          _aplicarFiltro();
-        });
+        setState(() { _pagos = data is List ? data : []; _currentPage = 0; _aplicarFiltro(); });
       } else {
         _snack('Error al cargar pagos (${res.statusCode})', error: true);
       }
@@ -112,11 +105,76 @@ class _PagosScreenState extends State<PagosScreen> {
         final nombre  = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.toLowerCase();
         final idPago  = p['id_pago'].toString();
         final metodo  = (p['metodo_pago'] ?? '').toLowerCase();
-        final ok = q.isEmpty || nombre.contains(q) || idPago.contains(q) || metodo.contains(q);
+        final ok      = q.isEmpty || nombre.contains(q) || idPago.contains(q) || metodo.contains(q);
         final okEstado = _filtroEstado == 'todos' || p['estado_pago'] == _filtroEstado;
         return ok && okEstado;
       }).toList();
     });
+  }
+
+  Future<void> _actualizarEstado(int idPago, String nuevoEstado) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return;
+      final res = await http.patch(
+        Uri.parse('${ApiConfig.baseUrl}/pagos/$idPago'),
+        headers: _headers(token),
+        body: jsonEncode({'estado_pago': nuevoEstado}),
+      );
+      if (res.statusCode == 200) {
+        _snack('Estado actualizado');
+        await _cargar();
+      } else {
+        _snack('No se pudo actualizar', error: true);
+      }
+    } catch (e) {
+      _snack('Error: $e', error: true);
+    }
+  }
+
+  // ── FIX L122: _cambiarEstado partido en sub-métodos ───────────────────
+
+  Widget _buildInfoPago(dynamic pago) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0a0a0a),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF2a2a2a)),
+      ),
+      child: Column(children: [
+        _infoFila('Monto', '\$${double.tryParse(pago['monto'].toString())?.toStringAsFixed(0) ?? '0'}'),
+        _infoFila('Método', (pago['metodo_pago'] ?? '-').replaceAll('_', ' ')),
+        if (pago['referencia'] != null) _infoFila('Referencia', pago['referencia']),
+      ]),
+    );
+  }
+
+  Widget _buildSelectorEstado(String estadoSel, void Function(String) onSelect) {
+    return Wrap(
+      spacing: 8, runSpacing: 8,
+      children: _estados.skip(1).map((e) {
+        final color = _coloresEstado[e] ?? Colors.grey;
+        final sel   = estadoSel == e;
+        return GestureDetector(
+          onTap: () => onSelect(e),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: sel ? color.withOpacity(0.2) : const Color(0xFF0a0a0a),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 2 : 1),
+            ),
+            child: Text(e.toUpperCase(),
+                style: TextStyle(
+                    color: sel ? color : Colors.white38,
+                    fontSize: 11,
+                    fontWeight: sel ? FontWeight.bold : FontWeight.normal)),
+          ),
+        );
+      }).toList(),
+    );
   }
 
   Future<void> _cambiarEstado(dynamic pago) async {
@@ -137,49 +195,11 @@ class _PagosScreenState extends State<PagosScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Info
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0a0a0a),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF2a2a2a)),
-                ),
-                child: Column(children: [
-                  _infoFila('Monto', '\$${double.tryParse(pago['monto'].toString())?.toStringAsFixed(0) ?? '0'}'),
-                  _infoFila('Método', (pago['metodo_pago'] ?? '-').replaceAll('_', ' ')),
-                  if (pago['referencia'] != null)
-                    _infoFila('Referencia', pago['referencia']),
-                ]),
-              ),
+              _buildInfoPago(pago),
               const SizedBox(height: 16),
               const Text('Estado', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8, runSpacing: 8,
-                children: _estados.skip(1).map((e) {
-                  final color = _coloresEstado[e] ?? Colors.grey;
-                  final sel = estadoSel == e;
-                  return GestureDetector(
-                    onTap: () => set(() => estadoSel = e),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: sel ? color.withOpacity(0.2) : const Color(0xFF0a0a0a),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 2 : 1),
-                      ),
-                      child: Text(e.toUpperCase(),
-                          style: TextStyle(
-                            color: sel ? color : Colors.white38,
-                            fontSize: 11,
-                            fontWeight: sel ? FontWeight.bold : FontWeight.normal,
-                          )),
-                    ),
-                  );
-                }).toList(),
-              ),
+              _buildSelectorEstado(estadoSel, (e) => set(() => estadoSel = e)),
             ],
           ),
           actions: [
@@ -205,31 +225,70 @@ class _PagosScreenState extends State<PagosScreen> {
     );
   }
 
-  Future<void> _actualizarEstado(int idPago, String nuevoEstado) async {
-    try {
-      final token = await _getToken();
-      if (token == null) return;
-      final res = await http.patch(
-        Uri.parse('${ApiConfig.baseUrl}/pagos/$idPago'),
-        headers: _headers(token),
-        body: jsonEncode({'estado_pago': nuevoEstado}),
-      );
-      if (res.statusCode == 200) {
-        _snack('Estado actualizado');
-        await _cargar();
-      } else {
-        _snack('No se pudo actualizar', error: true);
-      }
-    } catch (e) {
-      _snack('Error: $e', error: true);
-    }
+  // ── FIX L411: _verDetalle partido en sub-métodos ──────────────────────
+
+  Widget _buildHeaderDetalle(dynamic pago, Color color, IconData icono) {
+    return Row(children: [
+      Container(
+        width: 48, height: 48,
+        decoration: BoxDecoration(color: _cyan.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+        child: Icon(icono, color: _cyan, size: 24),
+      ),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Pago #${pago['id_pago']}',
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text((pago['metodo_pago'] ?? '').replaceAll('_', ' ').toUpperCase(),
+            style: const TextStyle(color: Colors.white38, fontSize: 12)),
+      ])),
+      GestureDetector(
+        onTap: () { Navigator.pop(context); _cambiarEstado(pago); },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withOpacity(0.5)),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text((pago['estado_pago'] ?? '').toUpperCase(),
+                style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 4),
+            Icon(Icons.edit, size: 11, color: color),
+          ]),
+        ),
+      ),
+    ]);
+  }
+
+  Widget _buildMontoDetalle(dynamic pago) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _cyan.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _cyan.withOpacity(0.25)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('MONTO',
+            style: TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 1, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text('\$${double.tryParse(pago['monto'].toString())?.toStringAsFixed(0) ?? '0'}',
+            style: const TextStyle(color: _cyan, fontSize: 28, fontWeight: FontWeight.w900)),
+        if (pago['referencia'] != null) ...[
+          const SizedBox(height: 4),
+          Text('Ref: ${pago['referencia']}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+        ],
+      ]),
+    );
   }
 
   void _verDetalle(dynamic pago) {
-    final pedido  = pago['Pedido'];
+    final pedido = pago['Pedido'];
     final usuario = pedido?['Usuario'];
-    final color   = _coloresEstado[pago['estado_pago']] ?? Colors.grey;
-    final icono   = _iconosMetodo[pago['metodo_pago']] ?? Icons.payment;
+    final color  = _coloresEstado[pago['estado_pago']] ?? Colors.grey;
+    final icono  = _iconosMetodo[pago['metodo_pago']] ?? Icons.payment;
 
     showModalBottomSheet(
       context: context,
@@ -250,87 +309,20 @@ class _PagosScreenState extends State<PagosScreen> {
               Center(
                 child: Container(
                   width: 36, height: 4,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Header
-              Row(children: [
-                Container(
-                  width: 48, height: 48,
                   decoration: BoxDecoration(
-                    color: _cyan.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icono, color: _cyan, size: 24),
+                      color: Colors.white24, borderRadius: BorderRadius.circular(2)),
                 ),
-                const SizedBox(width: 12),
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Pago #${pago['id_pago']}',
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text(
-                      (pago['metodo_pago'] ?? '').replaceAll('_', ' ').toUpperCase(),
-                      style: const TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                  ],
-                )),
-                GestureDetector(
-                  onTap: () { Navigator.pop(context); _cambiarEstado(pago); },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: color.withOpacity(0.5)),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Text(
-                        (pago['estado_pago'] ?? '').toUpperCase(),
-                        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.edit, size: 11, color: color),
-                    ]),
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 20),
-
-              // Monto destacado
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: _cyan.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _cyan.withOpacity(0.25)),
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('MONTO', style: TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 1, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '\$${double.tryParse(pago['monto'].toString())?.toStringAsFixed(0) ?? '0'}',
-                    style: const TextStyle(color: _cyan, fontSize: 28, fontWeight: FontWeight.w900),
-                  ),
-                  if (pago['referencia'] != null) ...[
-                    const SizedBox(height: 4),
-                    Text('Ref: ${pago['referencia']}',
-                        style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                  ],
-                ]),
               ),
               const SizedBox(height: 16),
-
-              // Detalles
+              _buildHeaderDetalle(pago, color, icono),
+              const SizedBox(height: 20),
+              _buildMontoDetalle(pago),
+              const SizedBox(height: 16),
               _seccion('PAGO', Icons.receipt, [
                 _fila('Método', (pago['metodo_pago'] ?? '-').replaceAll('_', ' ')),
                 _fila('Fecha', _formatFecha(pago['fecha_pago'])),
               ]),
               const SizedBox(height: 12),
-
               if (usuario != null) ...[
                 _seccion('CLIENTE', Icons.person, [
                   _fila('Nombre', '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'),
@@ -338,12 +330,12 @@ class _PagosScreenState extends State<PagosScreen> {
                 ]),
                 const SizedBox(height: 12),
               ],
-
               if (pedido != null)
                 _seccion('PEDIDO', Icons.receipt_long, [
                   _fila('ID', '#${pedido['id_pedido']}'),
                   _fila('Fecha', _formatFecha(pedido['fecha_pedido'])),
-                  _fila('Total pedido', '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(0) ?? '0'}'),
+                  _fila('Total pedido',
+                      '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(0) ?? '0'}'),
                 ]),
             ],
           ),
@@ -353,47 +345,50 @@ class _PagosScreenState extends State<PagosScreen> {
   }
 
   Widget _seccion(String titulo, IconData icono, List<Widget> hijos) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: const Color(0xFF0a0a0a),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF2a2a2a)),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Icon(icono, color: _cyan, size: 14),
-        const SizedBox(width: 6),
-        Text(titulo, style: const TextStyle(color: _cyan, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-      ]),
-      const SizedBox(height: 10),
-      ...hijos,
-    ]),
-  );
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0a0a0a),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF2a2a2a)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(icono, color: _cyan, size: 14),
+            const SizedBox(width: 6),
+            Text(titulo,
+                style: const TextStyle(
+                    color: _cyan, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+          ]),
+          const SizedBox(height: 10),
+          ...hijos,
+        ]),
+      );
 
   Widget _fila(String label, String valor) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-      Flexible(child: Text(valor,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
-          textAlign: TextAlign.end,
-          overflow: TextOverflow.ellipsis)),
-    ]),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+          Flexible(
+              child: Text(valor,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis)),
+        ]),
+      );
 
   Widget _infoFila(String label, String valor) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 3),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-      Text(valor, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-    ]),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+          Text(valor, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        ]),
+      );
 
   String _formatFecha(dynamic f) {
     if (f == null) return '-';
     try {
       final dt = DateTime.parse(f.toString());
-      return '${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')}/${dt.year}';
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
     } catch (_) { return f.toString(); }
   }
 
@@ -407,13 +402,38 @@ class _PagosScreenState extends State<PagosScreen> {
     ));
   }
 
+  // ── FIX: _buildCuerpo reemplaza ternario anidado en build ─────────────
+  Widget _buildCuerpo() {
+    if (_cargando) return const Center(child: CircularProgressIndicator(color: _cyan));
+    if (_pagosPaginados.isEmpty) {
+      return Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.payment_outlined, size: 72, color: Colors.grey[800]),
+          const SizedBox(height: 14),
+          const Text('Sin pagos', style: TextStyle(color: Colors.grey, fontSize: 15)),
+        ],
+      ));
+    }
+    return RefreshIndicator(
+      onRefresh: _cargar,
+      color: _cyan,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        itemCount: _pagosPaginados.length,
+        itemBuilder: (_, i) => _buildCard(_pagosPaginados[i]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0a0a0a),
-        title: const Text('Pagos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Pagos',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -424,7 +444,6 @@ class _PagosScreenState extends State<PagosScreen> {
         ],
       ),
       body: Column(children: [
-        // Buscador
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
           child: TextField(
@@ -437,18 +456,20 @@ class _PagosScreenState extends State<PagosScreen> {
               suffixIcon: _busquedaCtrl.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.close, color: Colors.white24, size: 18),
-                      onPressed: () { _busquedaCtrl.clear(); setState(() { _currentPage = 0; _aplicarFiltro(); }); },
+                      onPressed: () {
+                        _busquedaCtrl.clear();
+                        setState(() { _currentPage = 0; _aplicarFiltro(); });
+                      },
                     )
                   : null,
               filled: true,
               fillColor: const Color(0xFF1a1a1a),
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
           ),
         ),
-
-        // Filtros con contadores
         SizedBox(
           height: 42,
           child: ListView(
@@ -499,33 +520,8 @@ class _PagosScreenState extends State<PagosScreen> {
             }).toList(),
           ),
         ),
-
         const SizedBox(height: 4),
-
-        // Lista
-        Expanded(
-          child: _cargando
-              ? const Center(child: CircularProgressIndicator(color: _cyan))
-              : _pagosPaginados.isEmpty
-                  ? Center(child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.payment_outlined, size: 72, color: Colors.grey[800]),
-                        const SizedBox(height: 14),
-                        const Text('Sin pagos', style: TextStyle(color: Colors.grey, fontSize: 15)),
-                      ],
-                    ))
-                  : RefreshIndicator(
-                      onRefresh: _cargar,
-                      color: _cyan,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        itemCount: _pagosPaginados.length,
-                        itemBuilder: (_, i) => _buildCard(_pagosPaginados[i]),
-                      ),
-                    ),
-        ),
-
+        Expanded(child: _buildCuerpo()),
         _buildPaginacion(),
       ]),
     );
@@ -537,6 +533,7 @@ class _PagosScreenState extends State<PagosScreen> {
     final color   = _coloresEstado[pago['estado_pago']] ?? Colors.grey;
     final icono   = _iconosMetodo[pago['metodo_pago']] ?? Icons.payment;
     final monto   = double.tryParse(pago['monto'].toString()) ?? 0;
+    final nombre  = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.trim();
 
     return GestureDetector(
       onTap: () => _verDetalle(pago),
@@ -551,41 +548,33 @@ class _PagosScreenState extends State<PagosScreen> {
         child: Row(children: [
           Container(
             width: 44, height: 44,
-            decoration: BoxDecoration(color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
             child: Icon(icono, color: _cyan, size: 22),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _cyan.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text('#${pago['id_pago']}',
-                      style: const TextStyle(color: _cyan, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.trim().isEmpty
-                        ? 'Sin cliente'
-                        : '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 4),
-              Text(
-                (pago['metodo_pago'] ?? '-').replaceAll('_', ' '),
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                    color: _cyan.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
+                child: Text('#${pago['id_pago']}',
+                    style: const TextStyle(color: _cyan, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
-            ],
-          )),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  nombre.isEmpty ? 'Sin cliente' : nombre,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ]),
+            const SizedBox(height: 4),
+            Text((pago['metodo_pago'] ?? '-').replaceAll('_', ' '),
+                style: const TextStyle(color: Colors.white38, fontSize: 11)),
+          ])),
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text('\$${monto.toStringAsFixed(0)}',
@@ -598,10 +587,8 @@ class _PagosScreenState extends State<PagosScreen> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: color.withOpacity(0.4)),
               ),
-              child: Text(
-                (pago['estado_pago'] ?? '').toUpperCase(),
-                style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
-              ),
+              child: Text((pago['estado_pago'] ?? '').toUpperCase(),
+                  style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ]),
         ]),
@@ -610,51 +597,58 @@ class _PagosScreenState extends State<PagosScreen> {
   }
 
   Widget _buildPaginacion() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    decoration: const BoxDecoration(
-      color: Color(0xFF0a0a0a),
-      border: Border(top: BorderSide(color: Color(0xFF1e1e1e))),
-    ),
-    child: Row(children: [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1a1a1a),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF2a2a2a)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0a0a0a),
+          border: Border(top: BorderSide(color: Color(0xFF1e1e1e))),
         ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<int>(
-            value: _pageSize,
-            dropdownColor: const Color(0xFF1a1a1a),
-            isDense: true,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-            icon: const Icon(Icons.expand_more, color: _cyan, size: 16),
-            items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
-            onChanged: (v) { if (v == null) return; setState(() { _pageSize = v; _currentPage = 0; }); },
+        child: Row(children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1a1a1a),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF2a2a2a)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _pageSize,
+                dropdownColor: const Color(0xFF1a1a1a),
+                isDense: true,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+                icon: const Icon(Icons.expand_more, color: _cyan, size: 16),
+                items: _pageSizes
+                    .map((s) => DropdownMenuItem(value: s, child: Text('$s / pág')))
+                    .toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(() { _pageSize = v; _currentPage = 0; });
+                },
+              ),
+            ),
           ),
-        ),
-      ),
-      const SizedBox(width: 8),
-      _btnPag(Icons.chevron_left, _currentPage > 0, () => setState(() => _currentPage--)),
-      Expanded(child: Center(child: Text(
-        'Pág. ${_currentPage + 1} / $_totalPages',
-        style: const TextStyle(color: Colors.white38, fontSize: 12),
-      ))),
-      _btnPag(Icons.chevron_right, _currentPage < _totalPages - 1, () => setState(() => _currentPage++)),
-    ]),
-  );
+          const SizedBox(width: 8),
+          _btnPag(Icons.chevron_left, _currentPage > 0,
+              () => setState(() => _currentPage--)),
+          Expanded(child: Center(child: Text(
+            'Pág. ${_currentPage + 1} / $_totalPages',
+            style: const TextStyle(color: Colors.white38, fontSize: 12),
+          ))),
+          _btnPag(Icons.chevron_right, _currentPage < _totalPages - 1,
+              () => setState(() => _currentPage++)),
+        ]),
+      );
 
   Widget _btnPag(IconData icon, bool enabled, VoidCallback onTap) => GestureDetector(
-    onTap: enabled ? onTap : null,
-    child: Container(
-      width: 32, height: 32,
-      decoration: BoxDecoration(
-        color: enabled ? const Color(0xFF1a1a1a) : const Color(0xFF0a0a0a),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: enabled ? const Color(0xFF2a2a2a) : Colors.transparent),
-      ),
-      child: Icon(icon, color: enabled ? _cyan : Colors.white12, size: 18),
-    ),
-  );
+        onTap: enabled ? onTap : null,
+        child: Container(
+          width: 32, height: 32,
+          decoration: BoxDecoration(
+            color: enabled ? const Color(0xFF1a1a1a) : const Color(0xFF0a0a0a),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: enabled ? const Color(0xFF2a2a2a) : Colors.transparent),
+          ),
+          child: Icon(icon, color: enabled ? _cyan : Colors.white12, size: 18),
+        ),
+      );
 }

@@ -104,38 +104,29 @@ class _InventarioScreenState extends State<InventarioScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))));
   }
 
-  // ── FIX L496: helper para label del botón ────────────────────────────
   String _labelBoton(String tipo) {
     if (tipo == 'entrada') return 'Agregar stock';
     if (tipo == 'salida')  return 'Registrar salida';
     return 'Aplicar ajuste';
   }
 
-  // ── FIX L389: helper para hint del campo cantidad ─────────────────────
   String _hintCantidad(String tipo) {
     if (tipo == 'ajuste')  return 'Nuevo stock total (reemplaza el actual)';
     if (tipo == 'entrada') return 'Cantidad a agregar';
     return 'Cantidad a restar';
   }
 
-  // ── FIX L108: formulario partido en sub-métodos ───────────────────────
-
   Widget _buildSelectorTipo(String tipo, void Function(String) setTipo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Tipo de movimiento',
-            style: TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-                fontWeight: FontWeight.w600)),
+            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Row(children: [
-          _tipoBtn('entrada', tipo, Icons.arrow_downward_rounded,
-              const Color(0xFF10B981), setTipo),
+          _tipoBtn('entrada', tipo, Icons.arrow_downward_rounded, const Color(0xFF10B981), setTipo),
           const SizedBox(width: 8),
-          _tipoBtn('salida', tipo, Icons.arrow_upward_rounded,
-              _pink, setTipo),
+          _tipoBtn('salida', tipo, Icons.arrow_upward_rounded, _pink, setTipo),
           const SizedBox(width: 8),
           _tipoBtn('ajuste', tipo, Icons.tune, _cyan, setTipo),
         ]),
@@ -151,11 +142,8 @@ class _InventarioScreenState extends State<InventarioScreen>
             Icon(_iconoTipo(tipo), color: _colorTipo(tipo), size: 14),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                _descripcionTipo(tipo),
-                style: TextStyle(
-                    color: _colorTipo(tipo).withOpacity(0.9), fontSize: 12),
-              ),
+              child: Text(_descripcionTipo(tipo),
+                  style: TextStyle(color: _colorTipo(tipo).withOpacity(0.9), fontSize: 12)),
             ),
           ]),
         ),
@@ -163,11 +151,8 @@ class _InventarioScreenState extends State<InventarioScreen>
     );
   }
 
-  Widget _buildProductoSeleccionado(
-    ProductoInventario? productoSel,
-    void Function() onLimpiar,
-  ) {
-    if (productoSel == null) return const SizedBox.shrink();
+  Widget _buildProductoSeleccionado(ProductoInventario? p, void Function() onLimpiar) {
+    if (p == null) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.only(bottom: 8),
@@ -179,25 +164,49 @@ class _InventarioScreenState extends State<InventarioScreen>
       child: Row(children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: _buildImagen(productoSel.imagen, size: 44),
+          child: _buildImagen(p.imagen, size: 44),
         ),
         const SizedBox(width: 10),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(productoSel.nombreProducto,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13)),
-            Text('Stock actual: ${productoSel.stockDisponible}',
-                style: const TextStyle(color: _cyan, fontSize: 11)),
-          ]),
-        ),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(p.nombreProducto,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+          Text('Stock actual: ${p.stockDisponible}',
+              style: const TextStyle(color: _cyan, fontSize: 11)),
+        ])),
         GestureDetector(
           onTap: onLimpiar,
           child: const Icon(Icons.close, color: Colors.white38, size: 18),
         ),
       ]),
+    );
+  }
+
+  Widget _buildItemProducto(ProductoInventario p, void Function(ProductoInventario) onSel) {
+    return GestureDetector(
+      onTap: () => onSel(p),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black26,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF2A2A2A)),
+        ),
+        child: Row(children: [
+          ClipRRect(borderRadius: BorderRadius.circular(6), child: _buildImagen(p.imagen, size: 38)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(p.nombreProducto,
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                overflow: TextOverflow.ellipsis),
+            Text('Stock: ${p.stockDisponible}',
+                style: TextStyle(
+                    color: p.stockDisponible <= 5 ? Colors.orange : Colors.white38,
+                    fontSize: 11)),
+          ])),
+          const Icon(Icons.chevron_right, color: Colors.white24, size: 16),
+        ]),
+      ),
     );
   }
 
@@ -217,88 +226,29 @@ class _InventarioScreenState extends State<InventarioScreen>
           hintText: 'Buscar gorra...',
           hintStyle: const TextStyle(color: Colors.white38),
           prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
-          filled: true,
-          fillColor: Colors.black26,
-          isDense: true,
+          filled: true, fillColor: Colors.black26, isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 8),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _cyan, width: 1.5)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _cyan, width: 1.5)),
         ),
       ),
       const SizedBox(height: 8),
       SizedBox(
         height: 190,
         child: filtrados.isEmpty
-            ? const Center(
-                child: Text('Sin resultados',
-                    style: TextStyle(color: Colors.white38)))
+            ? const Center(child: Text('Sin resultados', style: TextStyle(color: Colors.white38)))
             : ListView.builder(
                 itemCount: filtrados.length,
-                itemBuilder: (_, i) =>
-                    _buildItemProducto(filtrados[i], onSeleccionar),
+                itemBuilder: (_, i) => _buildItemProducto(filtrados[i], onSeleccionar),
               ),
       ),
     ]);
   }
 
-  Widget _buildItemProducto(
-    ProductoInventario p,
-    void Function(ProductoInventario) onSeleccionar,
-  ) {
-    return GestureDetector(
-      onTap: () => onSeleccionar(p),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black26,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF2A2A2A)),
-        ),
-        child: Row(children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: _buildImagen(p.imagen, size: 38),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(p.nombreProducto,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis),
-              Text('Stock: ${p.stockDisponible}',
-                  style: TextStyle(
-                      color: p.stockDisponible <= 5
-                          ? Colors.orange
-                          : Colors.white38,
-                      fontSize: 11)),
-            ]),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.white24, size: 16),
-        ]),
-      ),
-    );
-  }
-
-  Widget _buildCamposCantidadMotivo(
-    String tipo,
-    TextEditingController cantidadCtrl,
-    TextEditingController motivoCtrl,
-  ) {
+  Widget _buildCamposCantidadMotivo(String tipo, TextEditingController cantidadCtrl, TextEditingController motivoCtrl) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Cantidad',
-          style: TextStyle(
-              color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+      const Text('Cantidad', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
       TextFormField(
         controller: cantidadCtrl,
@@ -306,32 +256,21 @@ class _InventarioScreenState extends State<InventarioScreen>
         style: const TextStyle(color: Colors.white),
         validator: (v) {
           if (v == null || v.isEmpty) return 'Requerido';
-          if (int.tryParse(v) == null || int.parse(v) <= 0) {
-            return 'Ingresa un número válido';
-          }
+          if (int.tryParse(v) == null || int.parse(v) <= 0) return 'Ingresa un número válido';
           return null;
         },
         decoration: InputDecoration(
           hintText: _hintCantidad(tipo),
           hintStyle: const TextStyle(color: Colors.white38),
           prefixIcon: Icon(_iconoTipo(tipo), color: _colorTipo(tipo), size: 18),
-          filled: true,
-          fillColor: Colors.black26,
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: _colorTipo(tipo), width: 2)),
+          filled: true, fillColor: Colors.black26,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: _colorTipo(tipo), width: 2)),
         ),
       ),
       const SizedBox(height: 12),
-      const Text('Motivo (opcional)',
-          style: TextStyle(
-              color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+      const Text('Motivo (opcional)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
       TextFormField(
         controller: motivoCtrl,
@@ -340,19 +279,11 @@ class _InventarioScreenState extends State<InventarioScreen>
         decoration: InputDecoration(
           hintText: _hintMotivo(tipo),
           hintStyle: const TextStyle(color: Colors.white38),
-          prefixIcon:
-              const Icon(Icons.notes, color: Colors.white38, size: 18),
-          filled: true,
-          fillColor: Colors.black26,
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _cyan, width: 1.5)),
+          prefixIcon: const Icon(Icons.notes, color: Colors.white38, size: 18),
+          filled: true, fillColor: Colors.black26,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2A2A2A))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _cyan, width: 1.5)),
         ),
       ),
     ]);
@@ -365,10 +296,7 @@ class _InventarioScreenState extends State<InventarioScreen>
     required TextEditingController motivoCtrl,
     required GlobalKey<FormState> fk,
   }) async {
-    if (productoSel == null) {
-      _mostrarError('Selecciona una gorra');
-      return;
-    }
+    if (productoSel == null) { _mostrarError('Selecciona una gorra'); return; }
     if (!fk.currentState!.validate()) return;
     final r = await InventarioService.registrarMovimiento(
       token:      _getToken(),
@@ -386,13 +314,9 @@ class _InventarioScreenState extends State<InventarioScreen>
     }
   }
 
-  // ── FIX L108: _abrirFormulario simplificado ───────────────────────────
   void _abrirFormulario() async {
     final r = await InventarioService.obtenerProductosLista(_getToken());
-    if (!r['success']) {
-      _mostrarError(r['message'] ?? 'No se pudieron cargar los productos');
-      return;
-    }
+    if (!r['success']) { _mostrarError(r['message'] ?? 'No se pudieron cargar los productos'); return; }
     final productos = r['data'] as List<ProductoInventario>;
     if (!mounted) return;
 
@@ -410,32 +334,20 @@ class _InventarioScreenState extends State<InventarioScreen>
         builder: (ctx, setS) {
           final filtrados = searchQuery.isEmpty
               ? productos
-              : productos
-                  .where((p) => p.nombreProducto
-                      .toLowerCase()
-                      .contains(searchQuery.toLowerCase()))
-                  .toList();
+              : productos.where((p) => p.nombreProducto.toLowerCase().contains(searchQuery.toLowerCase())).toList();
 
           return AlertDialog(
             backgroundColor: _card,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: _cyan, width: 1),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: _cyan, width: 1)),
             title: Row(children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    color: _cyan.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: _cyan.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                 child: const Icon(Icons.add_box, color: _cyan, size: 20),
               ),
               const SizedBox(width: 10),
               const Text('Registrar Movimiento',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             ]),
             content: SizedBox(
               width: 400,
@@ -448,30 +360,17 @@ class _InventarioScreenState extends State<InventarioScreen>
                     children: [
                       _buildSelectorTipo(tipo, (v) => setS(() => tipo = v)),
                       const Text('Seleccionar gorra',
-                          style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
-                      _buildProductoSeleccionado(
-                        productoSel,
-                        () => setS(() => productoSel = null),
-                      ),
+                      _buildProductoSeleccionado(productoSel, () => setS(() => productoSel = null)),
                       if (productoSel == null)
                         _buildBuscadorProductos(
-                          searchCtrl,
-                          searchQuery,
-                          filtrados,
-                          (p) => setS(() {
-                            productoSel = p;
-                            searchCtrl.clear();
-                            searchQuery = '';
-                          }),
+                          searchCtrl, searchQuery, filtrados,
+                          (p) => setS(() { productoSel = p; searchCtrl.clear(); searchQuery = ''; }),
                           (v) => setS(() => searchQuery = v),
                         ),
                       const SizedBox(height: 14),
-                      _buildCamposCantidadMotivo(
-                          tipo, cantidadCtrl, motivoCtrl),
+                      _buildCamposCantidadMotivo(tipo, cantidadCtrl, motivoCtrl),
                     ],
                   ),
                 ),
@@ -480,32 +379,20 @@ class _InventarioScreenState extends State<InventarioScreen>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancelar',
-                    style: TextStyle(color: Colors.white54)),
+                child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _colorTipo(tipo),
-                  foregroundColor:
-                      tipo == 'entrada' ? Colors.white : Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
+                  foregroundColor: tipo == 'entrada' ? Colors.white : Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  await _guardarMovimiento(
-                    productoSel:  productoSel,
-                    tipo:         tipo,
-                    cantidadCtrl: cantidadCtrl,
-                    motivoCtrl:   motivoCtrl,
-                    fk:           fk,
-                  );
+                  await _guardarMovimiento(productoSel: productoSel, tipo: tipo, cantidadCtrl: cantidadCtrl, motivoCtrl: motivoCtrl, fk: fk);
                 },
-                // ✅ FIX L496: ternario anidado → _labelBoton()
-                child: Text(_labelBoton(tipo),
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(_labelBoton(tipo), style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -520,72 +407,49 @@ class _InventarioScreenState extends State<InventarioScreen>
       backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: _card,
-        title: const Text('Inventario',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Inventario', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-              icon: const Icon(Icons.refresh, color: _cyan),
-              onPressed: _cargarMovimientos),
+          IconButton(icon: const Icon(Icons.refresh, color: _cyan), onPressed: _cargarMovimientos),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: _cyan,
-          indicatorWeight: 3,
-          labelColor: _cyan,
-          unselectedLabelColor: Colors.grey,
+          indicatorColor: _cyan, indicatorWeight: 3,
+          labelColor: _cyan, unselectedLabelColor: Colors.grey,
           tabs: [
-            Tab(
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                const Icon(Icons.list_alt, size: 18),
-                const SizedBox(width: 6),
-                Text('Movimientos (${_movimientos.length})'),
-              ]),
-            ),
-            Tab(
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.warning_amber,
-                    size: 18,
-                    color: _stockBajo.isNotEmpty ? Colors.orange : null),
-                const SizedBox(width: 6),
-                Text(
-                    'Stock Bajo${_stockBajo.isNotEmpty ? " (${_stockBajo.length})" : ""}'),
-              ]),
-            ),
+            Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.list_alt, size: 18), const SizedBox(width: 6),
+              Text('Movimientos (${_movimientos.length})'),
+            ])),
+            Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.warning_amber, size: 18, color: _stockBajo.isNotEmpty ? Colors.orange : null),
+              const SizedBox(width: 6),
+              Text('Stock Bajo${_stockBajo.isNotEmpty ? " (${_stockBajo.length})" : ""}'),
+            ])),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildTabMovimientos(),
-          _buildTabStockBajo(),
-        ],
+        children: [_buildTabMovimientos(), _buildTabStockBajo()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirFormulario,
         backgroundColor: _cyan,
         icon: const Icon(Icons.add, color: Colors.black),
-        label: const Text('Movimiento',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        label: const Text('Movimiento', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  // ── FIX L389: ternario anidado extraído a _buildListaMovimientos() ────
   Widget _buildListaMovimientos() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: _cyan));
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator(color: _cyan));
     if (_movimientos.isEmpty) {
-      return const Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.inbox_outlined, size: 64, color: Colors.white12),
-          SizedBox(height: 12),
-          Text('No hay movimientos',
-              style: TextStyle(color: Colors.white38)),
-        ]),
-      );
+      return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.inbox_outlined, size: 64, color: Colors.white12),
+        SizedBox(height: 12),
+        Text('No hay movimientos', style: TextStyle(color: Colors.white38)),
+      ]));
     }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -608,37 +472,25 @@ class _InventarioScreenState extends State<InventarioScreen>
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GestureDetector(
-                  onTap: () {
-                    setState(() => _filtroTipo = f);
-                    _cargarMovimientos();
-                  },
+                  onTap: () { setState(() => _filtroTipo = f); _cargarMovimientos(); },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: activo
-                          ? color.withOpacity(0.15)
-                          : Colors.transparent,
+                      color: activo ? color.withOpacity(0.15) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: activo ? color : const Color(0xFF2A2A2A)),
+                      border: Border.all(color: activo ? color : const Color(0xFF2A2A2A)),
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       if (f != 'todos') ...[
-                        Icon(_iconoTipo(f),
-                            color: activo ? color : Colors.white38,
-                            size: 14),
+                        Icon(_iconoTipo(f), color: activo ? color : Colors.white38, size: 14),
                         const SizedBox(width: 5),
                       ],
                       Text(
-                        f == 'todos'
-                            ? 'Todos'
-                            : f[0].toUpperCase() + f.substring(1),
+                        f == 'todos' ? 'Todos' : f[0].toUpperCase() + f.substring(1),
                         style: TextStyle(
                           color: activo ? color : Colors.white54,
-                          fontWeight:
-                              activo ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: activo ? FontWeight.bold : FontWeight.normal,
                           fontSize: 12,
                         ),
                       ),
@@ -650,16 +502,67 @@ class _InventarioScreenState extends State<InventarioScreen>
           ),
         ),
       ),
-      // ✅ FIX L389: reemplaza el ternario anidado
       Expanded(child: _buildListaMovimientos()),
       if (!_isLoading && _movimientos.isNotEmpty) _buildPaginacion(),
     ]);
   }
 
-  Widget _buildCardMovimiento(Movimiento m) {
-    final color     = _colorTipo(m.tipo);
-    final stockBajo = m.stockResultante <= m.stockMinimo;
+  // ── FIX L597: _buildCardMovimiento partido en sub-widgets ─────────────
+  Widget _buildChipTipo(Movimiento m, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(_iconoTipo(m.tipo), color: color, size: 10),
+        const SizedBox(width: 3),
+        Text(m.tipo.toUpperCase(), style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold)),
+      ]),
+    );
+  }
 
+  Widget _buildInfoMovimiento(Movimiento m, Color color) {
+    final stockBajo = m.stockResultante <= m.stockMinimo;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        _buildChipTipo(m, color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            m.nombreProducto ?? 'Producto #${m.idProducto}',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ]),
+      const SizedBox(height: 5),
+      Row(children: [
+        _miniChip('x${m.cantidad}', Colors.white54),
+        const SizedBox(width: 6),
+        _miniChip('Stock: ${m.stockResultante}',
+            stockBajo ? Colors.orange : Colors.white38,
+            icon: stockBajo ? Icons.warning_amber : null),
+      ]),
+      if (m.motivo != null && m.motivo!.isNotEmpty) ...[
+        const SizedBox(height: 4),
+        Row(children: [
+          const Icon(Icons.notes, color: Colors.white24, size: 12),
+          const SizedBox(width: 4),
+          Expanded(child: Text(m.motivo!, style: const TextStyle(color: Colors.white38, fontSize: 11), overflow: TextOverflow.ellipsis)),
+        ]),
+      ],
+      if (m.fechaMovimiento != null) ...[
+        const SizedBox(height: 3),
+        Row(children: [
+          const Icon(Icons.access_time, color: Colors.white24, size: 11),
+          const SizedBox(width: 4),
+          Text(_formatFecha(m.fechaMovimiento!), style: const TextStyle(color: Colors.white24, fontSize: 10)),
+        ]),
+      ],
+    ]);
+  }
+
+  Widget _buildCardMovimiento(Movimiento m) {
+    final color = _colorTipo(m.tipo);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -681,82 +584,71 @@ class _InventarioScreenState extends State<InventarioScreen>
                     child: _buildImagen(m.imagen, size: 56),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                      Row(children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(_iconoTipo(m.tipo), color: color, size: 10),
-                            const SizedBox(width: 3),
-                            Text(m.tipo.toUpperCase(),
-                                style: TextStyle(
-                                    color: color,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold)),
-                          ]),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            m.nombreProducto ?? 'Producto #${m.idProducto}',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 5),
-                      Row(children: [
-                        _miniChip('x${m.cantidad}', Colors.white54),
-                        const SizedBox(width: 6),
-                        _miniChip(
-                          'Stock: ${m.stockResultante}',
-                          stockBajo ? Colors.orange : Colors.white38,
-                          icon: stockBajo ? Icons.warning_amber : null,
-                        ),
-                      ]),
-                      if (m.motivo != null && m.motivo!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Row(children: [
-                          const Icon(Icons.notes,
-                              color: Colors.white24, size: 12),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(m.motivo!,
-                                style: const TextStyle(
-                                    color: Colors.white38, fontSize: 11),
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                        ]),
-                      ],
-                      if (m.fechaMovimiento != null) ...[
-                        const SizedBox(height: 3),
-                        Row(children: [
-                          const Icon(Icons.access_time,
-                              color: Colors.white24, size: 11),
-                          const SizedBox(width: 4),
-                          Text(_formatFecha(m.fechaMovimiento!),
-                              style: const TextStyle(
-                                  color: Colors.white24, fontSize: 10)),
-                        ]),
-                      ],
-                    ]),
-                  ),
+                  Expanded(child: _buildInfoMovimiento(m, color)),
                 ]),
               ),
             ),
           ]),
         ),
+      ),
+    );
+  }
+
+  // ── FIX L764: _buildPaginacion partido en sub-widgets ─────────────────
+  Widget _buildSelectorPagina() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D0D0D),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF2A2A2A)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _porPagina,
+          dropdownColor: _card,
+          isDense: true,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+          icon: const Icon(Icons.expand_more, color: _cyan, size: 16),
+          items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
+          onChanged: (val) {
+            if (val == null) return;
+            setState(() { _porPagina = val; _paginaActual = 0; });
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNumeroPaginas() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_totalPaginas, (i) {
+          final sel = i == _paginaActual;
+          return GestureDetector(
+            onTap: () => setState(() => _paginaActual = i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: sel ? 32 : 28, height: sel ? 32 : 28,
+              decoration: BoxDecoration(
+                color: sel ? _cyan : const Color(0xFF0D0D0D),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: sel ? _cyan : const Color(0xFF2A2A2A)),
+              ),
+              child: Center(
+                child: Text('${i + 1}',
+                    style: TextStyle(
+                      color: sel ? Colors.black : Colors.white54,
+                      fontSize: sel ? 13 : 12,
+                      fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+                    )),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -769,75 +661,11 @@ class _InventarioScreenState extends State<InventarioScreen>
         border: Border(top: BorderSide(color: Color(0xFF2A2A2A))),
       ),
       child: Row(children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0D0D0D),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFF2A2A2A)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _porPagina,
-              dropdownColor: _card,
-              isDense: true,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-              icon: const Icon(Icons.expand_more, color: _cyan, size: 16),
-              items: _pageSizes
-                  .map((s) =>
-                      DropdownMenuItem(value: s, child: Text('$s / pág')))
-                  .toList(),
-              onChanged: (val) {
-                if (val == null) return;
-                setState(() {
-                  _porPagina = val;
-                  _paginaActual = 0;
-                });
-              },
-            ),
-          ),
-        ),
+        _buildSelectorPagina(),
         const SizedBox(width: 8),
-        _btnPag(Icons.chevron_left, _paginaActual > 0,
-            () => setState(() => _paginaActual--)),
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_totalPaginas, (i) {
-                final sel = i == _paginaActual;
-                return GestureDetector(
-                  onTap: () => setState(() => _paginaActual = i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: sel ? 32 : 28,
-                    height: sel ? 32 : 28,
-                    decoration: BoxDecoration(
-                      color: sel ? _cyan : const Color(0xFF0D0D0D),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: sel ? _cyan : const Color(0xFF2A2A2A)),
-                    ),
-                    child: Center(
-                      child: Text('${i + 1}',
-                          style: TextStyle(
-                            color: sel ? Colors.black : Colors.white54,
-                            fontSize: sel ? 13 : 12,
-                            fontWeight: sel
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          )),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
-        _btnPag(Icons.chevron_right, _paginaActual < _totalPaginas - 1,
-            () => setState(() => _paginaActual++)),
+        _btnPag(Icons.chevron_left, _paginaActual > 0, () => setState(() => _paginaActual--)),
+        Expanded(child: _buildNumeroPaginas()),
+        _btnPag(Icons.chevron_right, _paginaActual < _totalPaginas - 1, () => setState(() => _paginaActual++)),
       ]),
     );
   }
@@ -850,36 +678,23 @@ class _InventarioScreenState extends State<InventarioScreen>
           decoration: BoxDecoration(
             color: enabled ? const Color(0xFF0D0D0D) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-                color: enabled
-                    ? const Color(0xFF2A2A2A)
-                    : Colors.transparent),
+            border: Border.all(color: enabled ? const Color(0xFF2A2A2A) : Colors.transparent),
           ),
-          child: Icon(icon,
-              color: enabled ? _cyan : Colors.white12, size: 20),
+          child: Icon(icon, color: enabled ? _cyan : Colors.white12, size: 20),
         ),
       );
-
-  // ── FIX L570: _buildTabStockBajo partido en sub-métodos ───────────────
 
   Widget _buildStockBajoVacio() {
     return Center(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF10B981).withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.check_circle_outline,
-              size: 56, color: Color(0xFF10B981)),
+          decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), shape: BoxShape.circle),
+          child: const Icon(Icons.check_circle_outline, size: 56, color: Color(0xFF10B981)),
         ),
         const SizedBox(height: 16),
         const Text('¡Todo el stock está bien!',
-            style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-                fontWeight: FontWeight.w600)),
+            style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         const Text('No hay productos con stock bajo',
             style: TextStyle(color: Colors.white38, fontSize: 13)),
@@ -905,68 +720,38 @@ class _InventarioScreenState extends State<InventarioScreen>
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: _buildImagen(imagen, size: 56),
-        ),
+        ClipRRect(borderRadius: BorderRadius.circular(8), child: _buildImagen(imagen, size: 56)),
         const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Expanded(
-                child: Text(nombre,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13),
-                    overflow: TextOverflow.ellipsis),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text('$actual / $minimo',
-                    style: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12)),
-              ),
-            ]),
-            const SizedBox(height: 6),
-            Stack(children: [
-              Container(
-                  height: 5,
-                  decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(4))),
-              FractionallySizedBox(
-                widthFactor: pct,
-                child: Container(
-                    height: 5,
-                    decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(4))),
-              ),
-            ]),
-            const SizedBox(height: 4),
-            Text(
-              critico ? '🔴 Stock crítico' : '🟠 Stock bajo',
-              style: TextStyle(color: color, fontSize: 11),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(nombre,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                overflow: TextOverflow.ellipsis)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+              child: Text('$actual / $minimo',
+                  style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
             ),
           ]),
-        ),
+          const SizedBox(height: 6),
+          Stack(children: [
+            Container(height: 5, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(4))),
+            FractionallySizedBox(
+              widthFactor: pct,
+              child: Container(height: 5, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
+            ),
+          ]),
+          const SizedBox(height: 4),
+          Text(critico ? '🔴 Stock crítico' : '🟠 Stock bajo',
+              style: TextStyle(color: color, fontSize: 11)),
+        ])),
       ]),
     );
   }
 
-  // ✅ FIX L570: complejidad reducida extrayendo _buildCardStockBajo
   Widget _buildTabStockBajo() {
-    if (_isLoadingStockBajo) {
-      return const Center(child: CircularProgressIndicator(color: _cyan));
-    }
+    if (_isLoadingStockBajo) return const Center(child: CircularProgressIndicator(color: _cyan));
     if (_stockBajo.isEmpty) return _buildStockBajoVacio();
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -975,47 +760,32 @@ class _InventarioScreenState extends State<InventarioScreen>
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────
   Widget _buildImagen(String? path, {double size = 56}) {
     if (path == null || path.isEmpty) return _placeholder(size);
     if (path.startsWith('http')) {
-      return Image.network(path,
-          width: size, height: size, fit: BoxFit.cover,
+      return Image.network(path, width: size, height: size, fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _placeholder(size));
     }
-    return Image.asset(path,
-        width: size, height: size, fit: BoxFit.cover,
+    return Image.asset(path, width: size, height: size, fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _placeholder(size));
   }
 
   Widget _placeholder(double size) => Container(
         width: size, height: size,
-        decoration: BoxDecoration(
-            color: const Color(0xFF2A2A2A),
-            borderRadius: BorderRadius.circular(8)),
-        child:
-            const Icon(Icons.inventory_2, color: Colors.white24, size: 22),
+        decoration: BoxDecoration(color: const Color(0xFF2A2A2A), borderRadius: BorderRadius.circular(8)),
+        child: const Icon(Icons.inventory_2, color: Colors.white24, size: 22),
       );
 
   Widget _miniChip(String label, Color color, {IconData? icon}) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(6),
-        ),
+        decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (icon != null) ...[
-            Icon(icon, color: color, size: 11),
-            const SizedBox(width: 3),
-          ],
-          Text(label,
-              style: TextStyle(
-                  color: color, fontSize: 11, fontWeight: FontWeight.w500)),
+          if (icon != null) ...[Icon(icon, color: color, size: 11), const SizedBox(width: 3)],
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
         ]),
       );
 
-  Widget _tipoBtn(String value, String current, IconData icon, Color color,
-      void Function(String) onTap) {
+  Widget _tipoBtn(String value, String current, IconData icon, Color color, void Function(String) onTap) {
     final sel = current == value;
     return Expanded(
       child: GestureDetector(
@@ -1026,20 +796,14 @@ class _InventarioScreenState extends State<InventarioScreen>
           decoration: BoxDecoration(
             color: sel ? color.withOpacity(0.2) : Colors.black26,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: sel ? color : const Color(0xFF2A2A2A),
-                width: sel ? 1.5 : 1),
+            border: Border.all(color: sel ? color : const Color(0xFF2A2A2A), width: sel ? 1.5 : 1),
           ),
           child: Column(children: [
             Icon(icon, color: sel ? color : Colors.white38, size: 20),
             const SizedBox(height: 4),
-            Text(
-              value[0].toUpperCase() + value.substring(1),
-              style: TextStyle(
-                  color: sel ? color : Colors.white38,
-                  fontSize: 11,
-                  fontWeight: sel ? FontWeight.bold : FontWeight.normal),
-            ),
+            Text(value[0].toUpperCase() + value.substring(1),
+                style: TextStyle(color: sel ? color : Colors.white38, fontSize: 11,
+                    fontWeight: sel ? FontWeight.bold : FontWeight.normal)),
           ]),
         ),
       ),
