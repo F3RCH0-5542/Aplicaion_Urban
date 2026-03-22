@@ -41,6 +41,8 @@ class _AdminDashboardState extends State<AdminDashboard>
   static const _purple = Color(0xFF8B5CF6);
   static const _pink   = Color(0xFFEC4899);
 
+  static const _baseUrl = 'http://localhost:3001/api';
+
   @override
   void initState() {
     super.initState();
@@ -54,29 +56,94 @@ class _AdminDashboardState extends State<AdminDashboard>
     super.dispose();
   }
 
+  List<dynamic> _parseList(dynamic body, List<String> keys) {
+    if (body is List) return body;
+    for (final key in keys) {
+      if (body[key] != null) return body[key];
+    }
+    return [];
+  }
+
+  List<dynamic> _parsearRespuesta(http.Response r, List<String> keys) {
+    if (r.statusCode != 200) return [];
+    return _parseList(jsonDecode(r.body), keys);
+  }
+
+  Map<String, int> _contarPorEstado(List<dynamic> items, String field) {
+    final map = <String, int>{};
+    for (final item in items) {
+      final e = item[field] ?? 'pendiente';
+      map[e] = (map[e] ?? 0) + 1;
+    }
+    return map;
+  }
+
+  Map<String, double> _ventasPorDia(List<dynamic> ventas) {
+    final now = DateTime.now();
+    final map = <String, double>{};
+    for (int i = 6; i >= 0; i--) {
+      final d = now.subtract(Duration(days: i));
+      map['${d.day}/${d.month}'] = 0;
+    }
+    for (final v in ventas) {
+      try {
+        final f = DateTime.parse(v['fecha']?.toString() ?? v['createdAt']?.toString() ?? '');
+        final key = '${f.day}/${f.month}';
+        if (map.containsKey(key)) {
+          map[key] = (map[key] ?? 0) + (double.tryParse(v['total']?.toString() ?? '0') ?? 0);
+        }
+      } catch (_) {}
+    }
+    return map;
+  }
+
+  List<dynamic> _ventasDelMes(List<dynamic> ventas) {
+    final now = DateTime.now();
+    return ventas.where((v) {
+      try {
+        final f = DateTime.parse(v['fecha']?.toString() ?? v['createdAt']?.toString() ?? '');
+        return f.month == now.month && f.year == now.year;
+      } catch (_) {
+        return false;
+      }
+    }).toList();
+  }
+
+  double _sumarTotal(List<dynamic> items) {
+    return items.fold(0.0, (s, v) => s + (double.tryParse(v['total']?.toString() ?? '0') ?? 0));
+  }
+
+  List<dynamic> _stockBajo(List<dynamic> inventario) {
+    return inventario.where((i) {
+      final disp = int.tryParse(
+        i['stock_resultante']?.toString() ??
+        i['stock_disponible']?.toString() ??
+        i['cantidad']?.toString() ?? '99') ?? 99;
+      final min = int.tryParse(i['stock_minimo']?.toString() ?? '5') ?? 5;
+      return disp <= min;
+    }).toList();
+  }
+
   Future<void> _cargarEstadisticas() async {
     setState(() => _loadingStats = true);
     try {
       final token = await AuthService.getToken();
       if (token == null) return;
-      const base = 'http://localhost:3001/api';
 
-      // ✅ CORREGIDO: Authorization Bearer
       final headers = {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       };
 
       final results = await Future.wait([
-        http.get(Uri.parse('$base/ventas'), headers: headers),
-        http.get(Uri.parse('$base/pedidos'), headers: headers),
-        http.get(Uri.parse('$base/personalizaciones'), headers: headers),
-        http.get(Uri.parse('$base/pqrs'), headers: headers),
-        http.get(Uri.parse('$base/usuarios'), headers: headers),
-        http.get(Uri.parse('$base/inventario'), headers: headers),
+        http.get(Uri.parse('$_baseUrl/ventas'), headers: headers),
+        http.get(Uri.parse('$_baseUrl/pedidos'), headers: headers),
+        http.get(Uri.parse('$_baseUrl/personalizaciones'), headers: headers),
+        http.get(Uri.parse('$_baseUrl/pqrs'), headers: headers),
+        http.get(Uri.parse('$_baseUrl/usuarios'), headers: headers),
+        http.get(Uri.parse('$_baseUrl/inventario'), headers: headers),
       ]);
 
-      // ✅ Si cualquier endpoint devuelve 401, el token expiró → logout
       if (results.any((r) => r.statusCode == 401)) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
@@ -84,111 +151,36 @@ class _AdminDashboardState extends State<AdminDashboard>
         return;
       }
 
-      List<dynamic> ventas = [], pedidos = [], pers = [], pqrs = [], usuarios = [], inventario = [];
+      final ventas     = _parsearRespuesta(results[0], ['ventas', 'data']);
+      final pedidos    = _parsearRespuesta(results[1], ['pedidos', 'data']);
+      final pers       = _parsearRespuesta(results[2], ['personalizaciones', 'data']);
+      final pqrs       = _parsearRespuesta(results[3], ['pqrs', 'data']);
+      final usuarios   = _parsearRespuesta(results[4], ['usuarios', 'data']);
+      final inventario = _parsearRespuesta(results[5], ['movimientos', 'inventario', 'data']);
 
-      if (results[0].statusCode == 200) {
-        final d = jsonDecode(results[0].body);
-        ventas = d is List ? d : (d['ventas'] ?? d['data'] ?? []);
-      }
-      if (results[1].statusCode == 200) {
-        final d = jsonDecode(results[1].body);
-        pedidos = d is List ? d : (d['pedidos'] ?? d['data'] ?? []);
-      }
-      if (results[2].statusCode == 200) {
-        final d = jsonDecode(results[2].body);
-        pers = d is List ? d : (d['personalizaciones'] ?? d['data'] ?? []);
-      }
-      if (results[3].statusCode == 200) {
-        final d = jsonDecode(results[3].body);
-        pqrs = d is List ? d : (d['pqrs'] ?? d['data'] ?? []);
-      }
-      if (results[4].statusCode == 200) {
-        final d = jsonDecode(results[4].body);
-        usuarios = d is List ? d : (d['usuarios'] ?? d['data'] ?? []);
-      }
-      if (results[5].statusCode == 200) {
-        final d = jsonDecode(results[5].body);
-        // ✅ inventario devuelve { movimientos: [...] }
-        inventario = d is List ? d : (d['movimientos'] ?? d['inventario'] ?? d['data'] ?? []);
-      }
-
-      final now = DateTime.now();
-      final ventasMes = ventas.where((v) {
-        try {
-          final f = DateTime.parse(v['fecha']?.toString() ?? v['createdAt']?.toString() ?? '');
-          return f.month == now.month && f.year == now.year;
-        } catch (_) { return false; }
-      }).toList();
-
-      double totalMes = ventasMes.fold(0.0, (s, v) =>
-          s + (double.tryParse(v['total']?.toString() ?? '0') ?? 0));
-      double totalGeneral = ventas.fold(0.0, (s, v) =>
-          s + (double.tryParse(v['total']?.toString() ?? '0') ?? 0));
-
-      Map<String, int> estadosPedido = {};
-      for (final p in pedidos) {
-        final e = p['estado'] ?? 'pendiente';
-        estadosPedido[e] = (estadosPedido[e] ?? 0) + 1;
-      }
-
-      Map<String, int> estadosPers = {};
-      for (final p in pers) {
-        final e = p['estado'] ?? 'pendiente';
-        estadosPers[e] = (estadosPers[e] ?? 0) + 1;
-      }
-
-      Map<String, int> estadosPqrs = {};
-      for (final p in pqrs) {
-        final e = p['estado'] ?? 'Pendiente';
-        estadosPqrs[e] = (estadosPqrs[e] ?? 0) + 1;
-      }
-
-      // ✅ Stock bajo — inventario devuelve movimientos, buscar stock_resultante <= stock_minimo
-      final stockBajo = inventario.where((i) {
-        final disp = int.tryParse(
-            i['stock_resultante']?.toString() ??
-            i['stock_disponible']?.toString() ??
-            i['cantidad']?.toString() ?? '99') ?? 99;
-        final min = int.tryParse(i['stock_minimo']?.toString() ?? '5') ?? 5;
-        return disp <= min;
-      }).toList();
-
-      Map<String, double> ventasPorDia = {};
-      for (int i = 6; i >= 0; i--) {
-        final d = now.subtract(Duration(days: i));
-        final key = '${d.day}/${d.month}';
-        ventasPorDia[key] = 0;
-      }
-      for (final v in ventas) {
-        try {
-          final f = DateTime.parse(v['fecha']?.toString() ?? v['createdAt']?.toString() ?? '');
-          final key = '${f.day}/${f.month}';
-          if (ventasPorDia.containsKey(key)) {
-            ventasPorDia[key] = (ventasPorDia[key] ?? 0) +
-                (double.tryParse(v['total']?.toString() ?? '0') ?? 0);
-          }
-        } catch (_) {}
-      }
+      final ventasMes     = _ventasDelMes(ventas);
+      final totalMes      = _sumarTotal(ventasMes);
+      final totalGeneral  = _sumarTotal(ventas);
 
       if (!mounted) return;
       setState(() {
         _loadingStats = false;
         _stats = {
-          'totalVentas': ventas.length,
-          'totalMes': totalMes,
-          'totalGeneral': totalGeneral,
-          'ventasMes': ventasMes.length,
-          'totalPedidos': pedidos.length,
-          'totalPers': pers.length,
-          'totalPqrs': pqrs.length,
-          'totalUsuarios': usuarios.length,
-          'estadosPedido': estadosPedido,
-          'estadosPers': estadosPers,
-          'estadosPqrs': estadosPqrs,
-          'stockBajo': stockBajo,
-          'ventasPorDia': ventasPorDia,
-          'pqrsRecientes': pqrs.take(5).toList(),
-          'pedidosRecientes': pedidos.take(5).toList(),
+          'totalVentas':     ventas.length,
+          'totalMes':        totalMes,
+          'totalGeneral':    totalGeneral,
+          'ventasMes':       ventasMes.length,
+          'totalPedidos':    pedidos.length,
+          'totalPers':       pers.length,
+          'totalPqrs':       pqrs.length,
+          'totalUsuarios':   usuarios.length,
+          'estadosPedido':   _contarPorEstado(pedidos, 'estado'),
+          'estadosPers':     _contarPorEstado(pers, 'estado'),
+          'estadosPqrs':     _contarPorEstado(pqrs, 'estado'),
+          'stockBajo':       _stockBajo(inventario),
+          'ventasPorDia':    _ventasPorDia(ventas),
+          'pqrsRecientes':   pqrs.take(5).toList(),
+          'pedidosRecientes':pedidos.take(5).toList(),
         };
       });
     } catch (e) {
@@ -247,9 +239,6 @@ class _AdminDashboardState extends State<AdminDashboard>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // TAB 1: MÓDULOS
-  // ═══════════════════════════════════════════════════════════
   Widget _buildModulos(AuthProvider authProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -320,9 +309,6 @@ class _AdminDashboardState extends State<AdminDashboard>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // TAB 2: REPORTES
-  // ═══════════════════════════════════════════════════════════
   Widget _buildReportes() {
     if (_loadingStats) {
       return const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -342,112 +328,90 @@ class _AdminDashboardState extends State<AdminDashboard>
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
           _sectionTitle('Resumen General', Icons.dashboard),
           const SizedBox(height: 12),
-          isMobile
-            ? Column(children: [
-                Row(children: [
-                  Expanded(child: _kpi('Ventas este mes', '${_stats['ventasMes'] ?? 0}', Icons.trending_up, _green)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _kpi('Ingresos mes', _formatMoney((_stats['totalMes'] ?? 0.0) as double), Icons.attach_money, _accent)),
-                ]),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _kpi('Pedidos totales', '${_stats['totalPedidos'] ?? 0}', Icons.shopping_bag, _orange)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _kpi('Usuarios', '${_stats['totalUsuarios'] ?? 0}', Icons.people, _purple)),
-                ]),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _kpi('PQRS abiertas', '${(_stats['estadosPqrs'] as Map<String,int>? ?? {})['Pendiente'] ?? 0}', Icons.support_agent, _red)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _kpi('Personalizaciones', '${_stats['totalPers'] ?? 0}', Icons.palette, _pink)),
-                ]),
-              ])
-            : Row(children: [
-                Expanded(child: _kpi('Ventas este mes', '${_stats['ventasMes'] ?? 0}', Icons.trending_up, _green)),
-                const SizedBox(width: 12),
-                Expanded(child: _kpi('Ingresos mes', _formatMoney((_stats['totalMes'] ?? 0.0) as double), Icons.attach_money, _accent)),
-                const SizedBox(width: 12),
-                Expanded(child: _kpi('Pedidos totales', '${_stats['totalPedidos'] ?? 0}', Icons.shopping_bag, _orange)),
-                const SizedBox(width: 12),
-                Expanded(child: _kpi('Usuarios', '${_stats['totalUsuarios'] ?? 0}', Icons.people, _purple)),
-                const SizedBox(width: 12),
-                Expanded(child: _kpi('PQRS pendientes', '${(_stats['estadosPqrs'] as Map<String,int>? ?? {})['Pendiente'] ?? 0}', Icons.support_agent, _red)),
-              ]),
-
+          _buildKpisRow(isMobile),
           const SizedBox(height: 28),
-
           _sectionTitle('Ventas últimos 7 días', Icons.bar_chart),
           const SizedBox(height: 12),
           _ventasChart(),
-
           const SizedBox(height: 28),
-
-          isMobile
-            ? Column(children: [
-                _estadosCard('Pedidos por estado', _stats['estadosPedido'] as Map<String,int>? ?? {}, {
-                  'pendiente': _orange, 'en_proceso': _accent,
-                  'enviado': _purple, 'completado': _green, 'cancelado': _red,
-                }),
-                const SizedBox(height: 16),
-                _estadosCard('PQRS por estado', _stats['estadosPqrs'] as Map<String,int>? ?? {}, {
-                  'Pendiente': _red, 'En Proceso': _orange,
-                  'Resuelto': _green, 'Cerrado': Colors.white24,
-                }),
-              ])
-            : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(child: _estadosCard('Pedidos por estado',
-                    _stats['estadosPedido'] as Map<String,int>? ?? {}, {
-                  'pendiente': _orange, 'en_proceso': _accent,
-                  'enviado': _purple, 'completado': _green, 'cancelado': _red,
-                })),
-                const SizedBox(width: 16),
-                Expanded(child: _estadosCard('PQRS por estado',
-                    _stats['estadosPqrs'] as Map<String,int>? ?? {}, {
-                  'Pendiente': _red, 'En Proceso': _orange,
-                  'Resuelto': _green, 'Cerrado': Colors.white24,
-                })),
-              ]),
-
+          _buildEstadosRow(isMobile),
           const SizedBox(height: 28),
-
           _sectionTitle('Personalizaciones por estado', Icons.palette),
           const SizedBox(height: 12),
           _estadosCard('', _stats['estadosPers'] as Map<String,int>? ?? {}, {
             'pendiente': _orange, 'en_proceso': _accent,
             'aprobada': _green, 'rechazada': _red,
           }),
-
           const SizedBox(height: 28),
-
           if ((_stats['stockBajo'] as List? ?? []).isNotEmpty) ...[
             _sectionTitle('⚠️ Productos con stock bajo', Icons.warning_amber, color: _orange),
             const SizedBox(height: 12),
             _stockBajoTable(),
             const SizedBox(height: 28),
           ],
-
           _sectionTitle('PQRS recientes', Icons.support_agent),
           const SizedBox(height: 12),
           _pqrsTable(),
-
           const SizedBox(height: 28),
-
           _sectionTitle('Pedidos recientes', Icons.receipt_long),
           const SizedBox(height: 12),
           _pedidosTable(),
-
           const SizedBox(height: 20),
         ]),
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // WIDGETS HELPERS
-  // ═══════════════════════════════════════════════════════════
+  Widget _buildKpisRow(bool isMobile) {
+    final kpis = [
+      _kpi('Ventas este mes', '${_stats['ventasMes'] ?? 0}', Icons.trending_up, _green),
+      _kpi('Ingresos mes', _formatMoney((_stats['totalMes'] ?? 0.0) as double), Icons.attach_money, _accent),
+      _kpi('Pedidos totales', '${_stats['totalPedidos'] ?? 0}', Icons.shopping_bag, _orange),
+      _kpi('Usuarios', '${_stats['totalUsuarios'] ?? 0}', Icons.people, _purple),
+      _kpi('PQRS pendientes', '${(_stats['estadosPqrs'] as Map<String,int>? ?? {})['Pendiente'] ?? 0}', Icons.support_agent, _red),
+    ];
+
+    if (isMobile) {
+      return Column(children: [
+        Row(children: [Expanded(child: kpis[0]), const SizedBox(width: 12), Expanded(child: kpis[1])]),
+        const SizedBox(height: 12),
+        Row(children: [Expanded(child: kpis[2]), const SizedBox(width: 12), Expanded(child: kpis[3])]),
+        const SizedBox(height: 12),
+        Row(children: [Expanded(child: kpis[4]), const SizedBox(width: 12), Expanded(child: _kpi('Personalizaciones', '${_stats['totalPers'] ?? 0}', Icons.palette, _pink))]),
+      ]);
+    }
+
+    return Row(children: kpis.map((k) => Expanded(child: Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: k,
+    ))).toList());
+  }
+
+  Widget _buildEstadosRow(bool isMobile) {
+    final pedidosCard = _estadosCard('Pedidos por estado',
+        _stats['estadosPedido'] as Map<String,int>? ?? {}, {
+      'pendiente': _orange, 'en_proceso': _accent,
+      'enviado': _purple, 'completado': _green, 'cancelado': _red,
+    });
+
+    final pqrsCard = _estadosCard('PQRS por estado',
+        _stats['estadosPqrs'] as Map<String,int>? ?? {}, {
+      'Pendiente': _red, 'En Proceso': _orange,
+      'Resuelto': _green, 'Cerrado': Colors.white24,
+    });
+
+    if (isMobile) {
+      return Column(children: [pedidosCard, const SizedBox(height: 16), pqrsCard]);
+    }
+
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: pedidosCard),
+      const SizedBox(width: 16),
+      Expanded(child: pqrsCard),
+    ]);
+  }
 
   Widget _sectionTitle(String text, IconData icon, {Color color = Colors.white}) {
     return Row(children: [
@@ -625,14 +589,23 @@ class _AdminDashboardState extends State<AdminDashboard>
     );
   }
 
+  Color _colorEstadoPqrs(String e) {
+    if (e == 'Pendiente') return _red;
+    if (e == 'En Proceso') return _orange;
+    if (e == 'Resuelto') return _green;
+    return Colors.white38;
+  }
+
+  Color _colorEstadoPedido(String e) {
+    if (e == 'pendiente') return _orange;
+    if (e == 'completado') return _green;
+    if (e == 'cancelado') return _red;
+    return _accent;
+  }
+
   Widget _pqrsTable() {
     final items = _stats['pqrsRecientes'] as List? ?? [];
     if (items.isEmpty) return _emptyState('No hay PQRS registradas');
-
-    Color colorEstado(String e) => e == 'Pendiente' ? _red
-        : e == 'En Proceso' ? _orange
-        : e == 'Resuelto' ? _green
-        : Colors.white38;
 
     return Container(
       decoration: BoxDecoration(color: _card, borderRadius: BorderRadius.circular(12), border: Border.all(color: _border)),
@@ -645,7 +618,7 @@ class _AdminDashboardState extends State<AdminDashboard>
             p['tipo_pqrs'] ?? '—',
             estado,
             _formatFecha(p['fecha_solicitud'] ?? p['createdAt']),
-          ], estadoColor: colorEstado(estado), estadoIdx: 2);
+          ], estadoColor: _colorEstadoPqrs(estado), estadoIdx: 2);
         }),
       ]),
     );
@@ -654,11 +627,6 @@ class _AdminDashboardState extends State<AdminDashboard>
   Widget _pedidosTable() {
     final items = _stats['pedidosRecientes'] as List? ?? [];
     if (items.isEmpty) return _emptyState('No hay pedidos registrados');
-
-    Color colorEstado(String e) => e == 'pendiente' ? _orange
-        : e == 'completado' ? _green
-        : e == 'cancelado' ? _red
-        : _accent;
 
     return Container(
       decoration: BoxDecoration(color: _card, borderRadius: BorderRadius.circular(12), border: Border.all(color: _border)),
@@ -671,7 +639,7 @@ class _AdminDashboardState extends State<AdminDashboard>
             '\$${p['total'] ?? '0'}',
             estado,
             _formatFecha(p['fecha_pedido'] ?? p['createdAt']),
-          ], estadoColor: colorEstado(estado), estadoIdx: 2);
+          ], estadoColor: _colorEstadoPedido(estado), estadoIdx: 2);
         }),
       ]),
     );
