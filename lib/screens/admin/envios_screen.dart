@@ -70,7 +70,6 @@ class _EnviosScreenState extends State<EnviosScreen> {
     return prefs.getString('token');
   }
 
-  // ✅ Header correcto
   Map<String, String> _headers(String token) => {
     'Content-Type': 'application/json',
     'x-access-token': token,
@@ -102,23 +101,52 @@ class _EnviosScreenState extends State<EnviosScreen> {
     }
   }
 
+  bool _coincideBusqueda(dynamic e, String busqueda) {
+    if (busqueda.isEmpty) return true;
+    final pedido  = e['Pedido'];
+    final usuario = pedido?['Usuario'];
+    final nombre  = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.toLowerCase();
+    final idEnvio = e['id_envio'].toString();
+    final ciudad  = (e['ciudad'] ?? '').toLowerCase();
+    return nombre.contains(busqueda) || idEnvio.contains(busqueda) || ciudad.contains(busqueda);
+  }
+
   void _aplicarFiltros() {
     final busqueda = _busquedaCtrl.text.toLowerCase();
     setState(() {
       _enviosFiltrados = _envios.where((e) {
-        final pedido  = e['Pedido'];
-        final usuario = pedido?['Usuario'];
-        final nombre  = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.toLowerCase();
-        final idEnvio = e['id_envio'].toString();
-        final ciudad  = (e['ciudad'] ?? '').toLowerCase();
-        final coincideBusqueda = busqueda.isEmpty ||
-            nombre.contains(busqueda) ||
-            idEnvio.contains(busqueda) ||
-            ciudad.contains(busqueda);
         final coincideEstado = _filtroEstado == 'todos' || e['estado_envio'] == _filtroEstado;
-        return coincideBusqueda && coincideEstado;
+        return _coincideBusqueda(e, busqueda) && coincideEstado;
       }).toList();
     });
+  }
+
+  Widget _buildOpcionEstado(String e, String estadoSeleccionado, void Function(String) onSelect) {
+    final seleccionado = estadoSeleccionado == e;
+    final color = _coloresEstado[e] ?? Colors.grey;
+    return GestureDetector(
+      onTap: () => onSelect(e),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: seleccionado ? color.withOpacity(0.25) : const Color(0xFF0a0a0a),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: seleccionado ? color : const Color(0xFF2a2a2a),
+            width: seleccionado ? 2 : 1,
+          ),
+        ),
+        child: Text(
+          e.replaceAll('_', ' ').toUpperCase(),
+          style: TextStyle(
+            color: seleccionado ? color : Colors.white54,
+            fontSize: 11,
+            fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _cambiarEstado(dynamic envio) async {
@@ -144,33 +172,9 @@ class _EnviosScreenState extends State<EnviosScreen> {
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8, runSpacing: 8,
-                children: ['pendiente', 'en_camino', 'entregado', 'devuelto'].map((e) {
-                  final seleccionado = estadoSeleccionado == e;
-                  final color = _coloresEstado[e] ?? Colors.grey;
-                  return GestureDetector(
-                    onTap: () => setStateDialog(() => estadoSeleccionado = e),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: seleccionado ? color.withOpacity(0.25) : const Color(0xFF0a0a0a),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: seleccionado ? color : const Color(0xFF2a2a2a),
-                          width: seleccionado ? 2 : 1,
-                        ),
-                      ),
-                      child: Text(
-                        e.replaceAll('_', ' ').toUpperCase(),
-                        style: TextStyle(
-                          color: seleccionado ? color : Colors.white54,
-                          fontSize: 11,
-                          fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                children: ['pendiente', 'en_camino', 'entregado', 'devuelto'].map((e) =>
+                  _buildOpcionEstado(e, estadoSeleccionado, (val) => setStateDialog(() => estadoSeleccionado = val))
+                ).toList(),
               ),
             ],
           ),
@@ -244,20 +248,14 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 child: Container(
                   width: 40, height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Envío #${envio['id_envio']}',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
+                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                   GestureDetector(
                     onTap: () { Navigator.pop(context); _cambiarEstado(envio); },
                     child: Container(
@@ -282,7 +280,6 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-
               _seccion('Dirección de entrega', Icons.location_on, [
                 _fila('Dirección', envio['direccion'] ?? '-'),
                 _fila('Ciudad',    envio['ciudad']    ?? '-'),
@@ -290,7 +287,6 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 _fila('Fecha',     _formatFecha(envio['fecha'])),
               ]),
               const SizedBox(height: 12),
-
               if (usuario != null) ...[
                 _seccion('Cliente', Icons.person, [
                   _fila('Nombre', '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'),
@@ -298,12 +294,11 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 ]),
                 const SizedBox(height: 12),
               ],
-
               if (pedido != null)
                 _seccion('Pedido vinculado', Icons.receipt_long, [
                   _fila('ID pedido',    '#${pedido['id_pedido']}'),
                   _fila('Fecha pedido', _formatFecha(pedido['fecha_pedido'])),
-                  _fila('Total',        '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(2) ?? '0.00'}'),
+                  _fila('Total', '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(2) ?? '0.00'}'),
                 ]),
             ],
           ),
@@ -325,12 +320,9 @@ class _EnviosScreenState extends State<EnviosScreen> {
         Row(children: [
           Icon(icono, color: const Color(0xFFF97316), size: 15),
           const SizedBox(width: 6),
-          Text(titulo,
-              style: const TextStyle(
-                  color: Color(0xFFF97316),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  letterSpacing: 0.5)),
+          Text(titulo, style: const TextStyle(
+            color: Color(0xFFF97316), fontWeight: FontWeight.bold,
+            fontSize: 12, letterSpacing: 0.5)),
         ]),
         const SizedBox(height: 10),
         ...hijos,
@@ -347,8 +339,7 @@ class _EnviosScreenState extends State<EnviosScreen> {
         Flexible(
           child: Text(valor,
               style: const TextStyle(color: Colors.white, fontSize: 13),
-              textAlign: TextAlign.end,
-              overflow: TextOverflow.ellipsis),
+              textAlign: TextAlign.end, overflow: TextOverflow.ellipsis),
         ),
       ],
     ),
@@ -396,7 +387,6 @@ class _EnviosScreenState extends State<EnviosScreen> {
       ),
       body: Column(
         children: [
-          // Buscador
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
             child: TextField(
@@ -419,90 +409,31 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 fillColor: const Color(0xFF1a1a1a),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
           ),
-
-          // Filtros con contadores
           SizedBox(
             height: 42,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              children: _estados.map((estado) {
-                final sel   = _filtroEstado == estado;
-                final color = estado == 'todos'
-                    ? const Color(0xFFF97316)
-                    : (_coloresEstado[estado] ?? Colors.grey);
-                final count = estado == 'todos'
-                    ? _envios.length
-                    : _envios.where((e) => e['estado_envio'] == estado).length;
-                return GestureDetector(
-                  onTap: () => setState(() {
-                    _filtroEstado = estado;
-                    _currentPage = 0;
-                    _aplicarFiltros();
-                  }),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: sel ? color : const Color(0xFF2a2a2a),
-                          width: sel ? 1.5 : 1),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Text(
-                        estado == 'todos' ? 'Todos' : estado.replaceAll('_', ' '),
-                        style: TextStyle(
-                          color: sel ? color : Colors.white38,
-                          fontSize: 12,
-                          fontWeight: sel ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text('$count',
-                            style: TextStyle(
-                                color: sel ? color : Colors.white24,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ]),
-                  ),
-                );
-              }).toList(),
+              children: _estados.map((estado) => _buildFiltroChip(estado)).toList(),
             ),
           ),
-
           const SizedBox(height: 4),
-
-          // Lista
           Expanded(
             child: _cargando
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)))
                 : _enviosPaginados.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.local_shipping_outlined,
-                                size: 72, color: Colors.grey[800]),
-                            const SizedBox(height: 14),
-                            const Text('Sin envíos',
-                                style: TextStyle(color: Colors.grey, fontSize: 15)),
-                          ],
-                        ))
+                    ? Center(child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.local_shipping_outlined, size: 72, color: Colors.grey[800]),
+                          const SizedBox(height: 14),
+                          const Text('Sin envíos', style: TextStyle(color: Colors.grey, fontSize: 15)),
+                        ],
+                      ))
                     : RefreshIndicator(
                         onRefresh: _cargarEnvios,
                         color: const Color(0xFFF97316),
@@ -513,11 +444,63 @@ class _EnviosScreenState extends State<EnviosScreen> {
                         ),
                       ),
           ),
-
           _buildPaginacion(),
         ],
       ),
     );
+  }
+
+  Widget _buildFiltroChip(String estado) {
+    final sel   = _filtroEstado == estado;
+    final color = estado == 'todos' ? const Color(0xFFF97316) : (_coloresEstado[estado] ?? Colors.grey);
+    final count = estado == 'todos'
+        ? _envios.length
+        : _envios.where((e) => e['estado_envio'] == estado).length;
+
+    return GestureDetector(
+      onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltros(); }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 1.5 : 1),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(
+            estado == 'todos' ? 'Todos' : estado.replaceAll('_', ' '),
+            style: TextStyle(
+              color: sel ? color : Colors.white38, fontSize: 12,
+              fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text('$count', style: TextStyle(
+                color: sel ? color : Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  String _clienteNombre(dynamic usuario) {
+    final nombre = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.trim();
+    return nombre.isEmpty ? 'Sin cliente' : nombre;
+  }
+
+  String _direccionTexto(dynamic envio) {
+    final ciudad = envio['ciudad'] ?? '';
+    final dir = envio['direccion'] ?? '';
+    final texto = '$ciudad · $dir'.trim();
+    return texto == '·' ? 'Sin dirección' : texto;
   }
 
   Widget _buildEnvioCard(dynamic envio) {
@@ -540,8 +523,7 @@ class _EnviosScreenState extends State<EnviosScreen> {
           Container(
             width: 44, height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icono, color: color, size: 22),
           ),
@@ -558,17 +540,12 @@ class _EnviosScreenState extends State<EnviosScreen> {
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text('#${envio['id_envio']}',
-                        style: const TextStyle(
-                            color: Color(0xFFF97316),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold)),
+                        style: const TextStyle(color: Color(0xFFF97316), fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.trim().isEmpty
-                          ? 'Sin cliente'
-                          : '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}',
+                      _clienteNombre(usuario),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -576,7 +553,7 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 ]),
                 const SizedBox(height: 4),
                 Text(
-                  '${envio['ciudad'] ?? ''} · ${envio['direccion'] ?? ''}'.trim() == '·' ? 'Sin dirección' : '${envio['ciudad'] ?? ''} · ${envio['direccion'] ?? ''}',
+                  _direccionTexto(envio),
                   style: const TextStyle(color: Colors.white38, fontSize: 11),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -630,9 +607,7 @@ class _EnviosScreenState extends State<EnviosScreen> {
             isDense: true,
             style: const TextStyle(color: Colors.white, fontSize: 12),
             icon: const Icon(Icons.expand_more, color: Color(0xFFF97316), size: 16),
-            items: _pageSizes
-                .map((s) => DropdownMenuItem(value: s, child: Text('$s / pág')))
-                .toList(),
+            items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
             onChanged: (val) {
               if (val == null) return;
               setState(() { _pageSize = val; _currentPage = 0; });
