@@ -47,6 +47,8 @@ class _PedidosScreenState extends State<PedidosScreen> {
     'cancelado':  Color(0xFFEF4444),
   };
 
+  static const _red = Color(0xFFEF4444);
+
   @override
   void initState() {
     super.initState();
@@ -111,7 +113,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
             : Container(
                 width: size, height: size, color: const Color(0xFF2a2a2a),
                 child: const Center(child: SizedBox(width: 20, height: 20,
-                    child: CircularProgressIndicator(color: Color(0xFFEF4444), strokeWidth: 2)))),
+                    child: CircularProgressIndicator(color: _red, strokeWidth: 2)))),
         errorBuilder: (_, __, ___) => _imgPlaceholder(size: size),
       );
     }
@@ -156,7 +158,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
         backgroundColor: const Color(0xFF1a1a1a),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(children: [
-          const Icon(Icons.edit, color: Color(0xFFEF4444), size: 20),
+          const Icon(Icons.edit, color: _red, size: 20),
           const SizedBox(width: 8),
           Text('Pedido #${pedido.idPedido}',
               style: const TextStyle(color: Colors.white, fontSize: 16)),
@@ -179,7 +181,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
             child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            style: ElevatedButton.styleFrom(backgroundColor: _red),
             onPressed: () async {
               if (nuevoEstado == estadoActual) { Navigator.pop(ctx); return; }
               Navigator.pop(ctx);
@@ -212,7 +214,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
             child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            style: ElevatedButton.styleFrom(backgroundColor: _red),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
           ),
@@ -225,6 +227,26 @@ class _PedidosScreenState extends State<PedidosScreen> {
         ? _mostrarExito(r['message'] ?? 'Pedido eliminado')
         : _mostrarError(r['message'] ?? 'Error');
     if (r['success']) _cargarPedidos();
+  }
+
+  Widget _buildBotonEstadoHeader(Pedido p, Pedido pedido, Color color) {
+    return GestureDetector(
+      onTap: () { Navigator.pop(context); _cambiarEstado(pedido); },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.6)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(p.estado.replaceAll('_', ' ').toUpperCase(),
+              style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 4),
+          Icon(Icons.edit, size: 11, color: color),
+        ]),
+      ),
+    );
   }
 
   Widget _buildHeaderPedido(Pedido p, Pedido pedido) {
@@ -252,26 +274,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
         Text(p.metodoPago ?? 'N/A', style: const TextStyle(color: Colors.white54, fontSize: 12)),
       ]),
     ]);
-  }
-
-  Widget _buildBotonEstadoHeader(Pedido p, Pedido pedido, Color color) {
-    return GestureDetector(
-      onTap: () { Navigator.pop(context); _cambiarEstado(pedido); },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.6)),
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(p.estado.replaceAll('_', ' ').toUpperCase(),
-              style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-          const SizedBox(width: 4),
-          Icon(Icons.edit, size: 11, color: color),
-        ]),
-      ),
-    );
   }
 
   Widget _buildListaProductos(Pedido p) {
@@ -307,34 +309,45 @@ class _PedidosScreenState extends State<PedidosScreen> {
             ]),
             const SizedBox(height: 6),
             Text('Subtotal: \$${d.subtotal.toStringAsFixed(0)}',
-                style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 13)),
+                style: const TextStyle(color: _red, fontWeight: FontWeight.bold, fontSize: 13)),
           ])),
         ]),
       )).toList(),
     );
   }
 
-  Future<void> _verDetalles(Pedido pedido) async {
-    final r = await PedidoService.getById(pedido.idPedido!, _getToken());
-    if (!r['success']) { _mostrarError(r['message'] ?? 'Error'); return; }
-    final p = r['data'] as Pedido;
-    if (!mounted) return;
+  Widget _buildSeccionEnvio(Pedido p) {
+    return _infoCard([
+      _infoRow(Icons.location_on, 'Dirección', p.envio!.direccion ?? 'N/A'),
+      _infoRow(Icons.location_city, 'Ciudad', p.envio!.ciudad ?? 'N/A'),
+      if (p.envio!.telefono != null && p.envio!.telefono!.isNotEmpty)
+        _infoRow(Icons.phone, 'Teléfono', p.envio!.telefono!),
+      _infoRow(Icons.local_shipping, 'Estado', p.envio!.estadoEnvio ?? 'pendiente'),
+    ]);
+  }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1a1a1a),
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.85, maxChildSize: 0.95, minChildSize: 0.5,
-        expand: false,
-        builder: (_, controller) => SingleChildScrollView(
-          controller: controller,
-          padding: const EdgeInsets.all(20),
-          child: _buildContenidoDetalle(p, pedido),
-        ),
+  Widget _buildSeccionPago(Pedido p) {
+    return _infoCard([
+      _infoRow(Icons.payment, 'Método', p.pago!.metodoPago ?? 'N/A'),
+      _infoRow(Icons.attach_money, 'Monto', '\$${p.pago!.monto?.toStringAsFixed(0) ?? '0'}'),
+      _infoRow(Icons.check_circle, 'Estado', p.pago!.estadoPago ?? 'pendiente'),
+    ]);
+  }
+
+  Widget _buildTotalCard(Pedido p) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _red.withOpacity(0.3)),
       ),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        const Text('TOTAL',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('\$${p.total.toStringAsFixed(0)}',
+            style: const TextStyle(color: _red, fontSize: 22, fontWeight: FontWeight.bold)),
+      ]),
     );
   }
 
@@ -368,46 +381,35 @@ class _PedidosScreenState extends State<PedidosScreen> {
     ]);
   }
 
-  Widget _buildSeccionEnvio(Pedido p) {
-    return _infoCard([
-      _infoRow(Icons.location_on, 'Dirección', p.envio!.direccion ?? 'N/A'),
-      _infoRow(Icons.location_city, 'Ciudad', p.envio!.ciudad ?? 'N/A'),
-      if (p.envio!.telefono != null && p.envio!.telefono!.isNotEmpty)
-        _infoRow(Icons.phone, 'Teléfono', p.envio!.telefono!),
-      _infoRow(Icons.local_shipping, 'Estado', p.envio!.estadoEnvio ?? 'pendiente'),
-    ]);
-  }
+  Future<void> _verDetalles(Pedido pedido) async {
+    final r = await PedidoService.getById(pedido.idPedido!, _getToken());
+    if (!r['success']) { _mostrarError(r['message'] ?? 'Error'); return; }
+    final p = r['data'] as Pedido;
+    if (!mounted) return;
 
-  Widget _buildSeccionPago(Pedido p) {
-    return _infoCard([
-      _infoRow(Icons.payment, 'Método', p.pago!.metodoPago ?? 'N/A'),
-      _infoRow(Icons.attach_money, 'Monto', '\$${p.pago!.monto?.toStringAsFixed(0) ?? '0'}'),
-      _infoRow(Icons.check_circle, 'Estado', p.pago!.estadoPago ?? 'pendiente'),
-    ]);
-  }
-
-  Widget _buildTotalCard(Pedido p) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1a1a1a),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85, maxChildSize: 0.95, minChildSize: 0.5,
+        expand: false,
+        builder: (_, controller) => SingleChildScrollView(
+          controller: controller,
+          padding: const EdgeInsets.all(20),
+          child: _buildContenidoDetalle(p, pedido),
+        ),
       ),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        const Text('TOTAL',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-        Text('\$${p.total.toStringAsFixed(0)}',
-            style: const TextStyle(color: Color(0xFFEF4444), fontSize: 22, fontWeight: FontWeight.bold)),
-      ]),
     );
   }
 
   Widget _seccionTitulo(String titulo, IconData icono) => Row(children: [
-        Icon(icono, color: const Color(0xFFEF4444), size: 16),
+        Icon(icono, color: _red, size: 16),
         const SizedBox(width: 6),
         Text(titulo, style: const TextStyle(
-            color: Color(0xFFEF4444), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+            color: _red, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
       ]);
 
   Widget _infoCard(List<Widget> children) => Container(
@@ -441,7 +443,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
   void _mostrarError(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg), backgroundColor: const Color(0xFFEF4444),
+      content: Text(msg), backgroundColor: _red,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ));
@@ -456,11 +458,8 @@ class _PedidosScreenState extends State<PedidosScreen> {
     ));
   }
 
-  // ── Paginación ────────────────────────────────────────────────────────────
-
   Widget _buildNumeroPagina(int i) {
     final isSelected = i == _currentPage;
-    final color = const Color(0xFFEF4444);
     return GestureDetector(
       onTap: () => setState(() => _currentPage = i),
       child: AnimatedContainer(
@@ -469,9 +468,9 @@ class _PedidosScreenState extends State<PedidosScreen> {
         width: isSelected ? 32 : 28,
         height: isSelected ? 32 : 28,
         decoration: BoxDecoration(
-          color: isSelected ? color : const Color(0xFF1a1a1a),
+          color: isSelected ? _red : const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSelected ? color : const Color(0xFF2a2a2a)),
+          border: Border.all(color: isSelected ? _red : const Color(0xFF2a2a2a)),
         ),
         child: Center(child: Text('${i + 1}',
             style: TextStyle(
@@ -497,7 +496,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
           dropdownColor: const Color(0xFF1a1a1a),
           isDense: true,
           style: const TextStyle(color: Colors.white, fontSize: 12),
-          icon: const Icon(Icons.expand_more, color: Color(0xFFEF4444), size: 16),
+          icon: const Icon(Icons.expand_more, color: _red, size: 16),
           items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
           onChanged: (val) {
             if (val == null) return;
@@ -545,11 +544,9 @@ class _PedidosScreenState extends State<PedidosScreen> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: enabled ? const Color(0xFF2a2a2a) : const Color(0xFF1a1a1a)),
           ),
-          child: Icon(icon, color: enabled ? const Color(0xFFEF4444) : Colors.white24, size: 20),
+          child: Icon(icon, color: enabled ? _red : Colors.white24, size: 20),
         ),
       );
-
-  // ── Buscador ──────────────────────────────────────────────────────────────
 
   Widget _buildBuscador() {
     return Padding(
@@ -582,23 +579,9 @@ class _PedidosScreenState extends State<PedidosScreen> {
     );
   }
 
-  Widget _buildFiltrosEstado() {
-    return SizedBox(
-      height: 44,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        itemCount: _estados.length,
-        itemBuilder: (_, i) => _buildChipFiltro(_estados[i]),
-      ),
-    );
-  }
-
   Widget _buildChipFiltro(String estado) {
     final selected = _filtroEstado == estado;
-    final color    = estado == 'todos'
-        ? const Color(0xFFEF4444)
-        : (_coloresEstado[estado] ?? Colors.grey);
+    final color    = estado == 'todos' ? _red : (_coloresEstado[estado] ?? Colors.grey);
     final label    = estado == 'todos' ? 'TODOS' : estado.replaceAll('_', ' ').toUpperCase();
     return GestureDetector(
       onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
@@ -619,6 +602,18 @@ class _PedidosScreenState extends State<PedidosScreen> {
     );
   }
 
+  Widget _buildFiltrosEstado() {
+    return SizedBox(
+      height: 44,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        itemCount: _estados.length,
+        itemBuilder: (_, i) => _buildChipFiltro(_estados[i]),
+      ),
+    );
+  }
+
   Widget _buildContador() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -633,8 +628,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
     );
   }
 
-  // ── Scaffold ──────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -646,13 +639,11 @@ class _PedidosScreenState extends State<PedidosScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-              icon: const Icon(Icons.refresh, color: Color(0xFFEF4444)),
-              onPressed: _cargarPedidos),
+          IconButton(icon: const Icon(Icons.refresh, color: _red), onPressed: _cargarPedidos),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFEF4444)))
+          ? const Center(child: CircularProgressIndicator(color: _red))
           : Column(children: [
               _buildBuscador(),
               _buildFiltrosEstado(),
@@ -718,7 +709,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
       ],
       const Spacer(),
       Text('\$${pedido.total.toStringAsFixed(0)}',
-          style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 15)),
+          style: const TextStyle(color: _red, fontWeight: FontWeight.bold, fontSize: 15)),
     ]);
   }
 
@@ -726,8 +717,8 @@ class _PedidosScreenState extends State<PedidosScreen> {
     return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
       TextButton.icon(
         onPressed: () => _cambiarEstado(pedido),
-        icon: const Icon(Icons.edit, size: 14, color: Color(0xFFEF4444)),
-        label: const Text('Estado', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12)),
+        icon: const Icon(Icons.edit, size: 14, color: _red),
+        label: const Text('Estado', style: TextStyle(color: _red, fontSize: 12)),
         style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),

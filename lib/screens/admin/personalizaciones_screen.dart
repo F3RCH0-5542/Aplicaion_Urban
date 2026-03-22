@@ -33,6 +33,7 @@ class _PersonalizacionesAdminScreenState
     final e = (s + _pageSize).clamp(0, _filtrados.length);
     return s >= _filtrados.length ? [] : _filtrados.sublist(s, e);
   }
+
   int get _totalPages =>
       _filtrados.isEmpty ? 1 : (_filtrados.length / _pageSize).ceil();
 
@@ -55,20 +56,20 @@ class _PersonalizacionesAdminScreenState
   static const _card    = Color(0xFF1a1a1a);
   static const _border  = Color(0xFF2a2a2a);
   static const _red     = Color(0xFFEF4444);
-
-  // ── FIX L151: constante para el literal duplicado ─────────────────────
   static const _sinUsuario = 'Usuario desconocido';
 
   @override
   void initState() {
     super.initState();
     _cargar();
-    _searchCtrl.addListener(() {
-      setState(() {
-        _searchQuery = _searchCtrl.text.toLowerCase();
-        _page = 0;
-        _aplicarFiltro();
-      });
+    _searchCtrl.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchCtrl.text.toLowerCase();
+      _page = 0;
+      _aplicarFiltro();
     });
   }
 
@@ -104,7 +105,7 @@ class _PersonalizacionesAdminScreenState
     _filtrados = lista;
   }
 
-  // ── FIX L110: _gestionar partido en sub-métodos ───────────────────────
+  // ── Gestionar dialog ──────────────────────────────────────────────────────
 
   Widget _buildGestionarInfoUsuario(Personalizacion item) {
     return Container(
@@ -125,35 +126,39 @@ class _PersonalizacionesAdminScreenState
     );
   }
 
+  Widget _buildChipSelectorEstado(String estado, String? estadoSel, void Function(String) onSelect) {
+    final color = _coloresEstado[estado] ?? Colors.grey;
+    final sel   = estadoSel == estado;
+    return GestureDetector(
+      onTap: () => onSelect(estado),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: sel ? color.withOpacity(0.2) : _surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: sel ? color : _border, width: sel ? 2 : 1),
+        ),
+        child: Text(
+          estado.replaceAll('_', ' ').toUpperCase(),
+          style: TextStyle(
+              color: sel ? color : Colors.white38,
+              fontSize: 11,
+              fontWeight: sel ? FontWeight.bold : FontWeight.normal),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGestionarSelectorEstado(String? estadoSel, void Function(String) onSelect) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Estado', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
       const SizedBox(height: 8),
       Wrap(
         spacing: 8, runSpacing: 8,
-        children: _estados.skip(1).map((estado) {
-          final color = _coloresEstado[estado] ?? Colors.grey;
-          final sel   = estadoSel == estado;
-          return GestureDetector(
-            onTap: () => onSelect(estado),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: sel ? color.withOpacity(0.2) : _surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: sel ? color : _border, width: sel ? 2 : 1),
-              ),
-              child: Text(
-                estado.replaceAll('_', ' ').toUpperCase(),
-                style: TextStyle(
-                    color: sel ? color : Colors.white38,
-                    fontSize: 11,
-                    fontWeight: sel ? FontWeight.bold : FontWeight.normal),
-              ),
-            ),
-          );
-        }).toList(),
+        children: _estados.skip(1)
+            .map((e) => _buildChipSelectorEstado(e, estadoSel, onSelect))
+            .toList(),
       ),
     ]);
   }
@@ -183,7 +188,6 @@ class _PersonalizacionesAdminScreenState
     ]);
   }
 
-  // ✅ FIX L110: complejidad reducida extrayendo sub-widgets
   Future<void> _gestionar(Personalizacion item) async {
     String? nuevoEstado = item.estado;
     double? nuevoPrecio = item.precioAdicional;
@@ -245,7 +249,7 @@ class _PersonalizacionesAdminScreenState
     );
   }
 
-  // ── FIX L277: _verDetalle partido en sub-métodos ──────────────────────
+  // ── Detalle bottom sheet ──────────────────────────────────────────────────
 
   Widget _buildDetalleHeader(Personalizacion item, Color color) {
     return Row(children: [
@@ -258,35 +262,39 @@ class _PersonalizacionesAdminScreenState
           style: const TextStyle(color: Colors.white54, fontSize: 13),
         ),
       ])),
-      GestureDetector(
-        onTap: () { Navigator.pop(context); _gestionar(item); },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.5)),
-          ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(item.estado.replaceAll('_', ' ').toUpperCase(),
-                style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-            const SizedBox(width: 4),
-            Icon(Icons.edit, size: 11, color: color),
-          ]),
-        ),
-      ),
+      _buildBotonEstadoDetalle(item, color),
     ]);
   }
 
+  Widget _buildBotonEstadoDetalle(Personalizacion item, Color color) {
+    return GestureDetector(
+      onTap: () { Navigator.pop(context); _gestionar(item); },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.5)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(item.estado.replaceAll('_', ' ').toUpperCase(),
+              style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 4),
+          Icon(Icons.edit, size: 11, color: color),
+        ]),
+      ),
+    );
+  }
+
   Widget _buildDetallePrecio(Personalizacion item) {
+    final tienePrecio = item.precioAdicional > 0;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: item.precioAdicional > 0 ? _red.withOpacity(0.1) : _surface,
+        color: tienePrecio ? _red.withOpacity(0.1) : _surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: item.precioAdicional > 0 ? _red.withOpacity(0.3) : _border),
+        border: Border.all(color: tienePrecio ? _red.withOpacity(0.3) : _border),
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -294,31 +302,33 @@ class _PersonalizacionesAdminScreenState
               style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
           const SizedBox(height: 4),
           Text(
-            item.precioAdicional > 0
-                ? '\$${item.precioAdicional.toStringAsFixed(0)}'
-                : 'Por definir',
+            tienePrecio ? '\$${item.precioAdicional.toStringAsFixed(0)}' : 'Por definir',
             style: TextStyle(
-                color: item.precioAdicional > 0 ? _red : Colors.white38,
+                color: tienePrecio ? _red : Colors.white38,
                 fontSize: 24, fontWeight: FontWeight.w900),
           ),
         ]),
-        GestureDetector(
-          onTap: () { Navigator.pop(context); _gestionar(item); },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: _red.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _red.withOpacity(0.4)),
-            ),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.edit, color: _red, size: 14),
-              SizedBox(width: 6),
-              Text('Gestionar', style: TextStyle(color: _red, fontSize: 13, fontWeight: FontWeight.bold)),
-            ]),
-          ),
-        ),
+        _buildBotonGestionar(item),
       ]),
+    );
+  }
+
+  Widget _buildBotonGestionar(Personalizacion item) {
+    return GestureDetector(
+      onTap: () { Navigator.pop(context); _gestionar(item); },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: _red.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _red.withOpacity(0.4)),
+        ),
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.edit, color: _red, size: 14),
+          SizedBox(width: 6),
+          Text('Gestionar', style: TextStyle(color: _red, fontSize: 13, fontWeight: FontWeight.bold)),
+        ]),
+      ),
     );
   }
 
@@ -338,7 +348,25 @@ class _PersonalizacionesAdminScreenState
     ]);
   }
 
-  // ✅ FIX L277: complejidad reducida extrayendo sub-widgets
+  Widget _buildDetalleProductoBase(Personalizacion item) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: _surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: _border)),
+      child: Row(children: [
+        ClipRRect(borderRadius: BorderRadius.circular(8),
+            child: _buildImagen(item.producto!.imagen, size: 60)),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(item.producto!.nombre,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('\$${item.producto!.precio.toStringAsFixed(0)} base',
+              style: const TextStyle(color: Color(0xFF10B981), fontSize: 12)),
+        ])),
+      ]),
+    );
+  }
+
   void _verDetalle(Personalizacion item) {
     final color = _coloresEstado[item.estado] ?? Colors.grey;
     showModalBottomSheet(
@@ -353,54 +381,45 @@ class _PersonalizacionesAdminScreenState
         builder: (_, ctrl) => SingleChildScrollView(
           controller: ctrl,
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Container(
-              width: 36, height: 4,
-              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-            )),
-            const SizedBox(height: 16),
-            _buildDetalleHeader(item, color),
-            const SizedBox(height: 20),
-            _buildDetallePrecio(item),
-            const SizedBox(height: 20),
-            _sheetLabel('PERSONALIZACIÓN'),
-            const SizedBox(height: 10),
-            _buildDetallePersonalizacion(item),
-            const SizedBox(height: 20),
-            if (item.producto != null) ...[
-              _sheetLabel('GORRA BASE'),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: _surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: _border)),
-                child: Row(children: [
-                  ClipRRect(borderRadius: BorderRadius.circular(8),
-                      child: _buildImagen(item.producto!.imagen, size: 60)),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(item.producto!.nombre,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text('\$${item.producto!.precio.toStringAsFixed(0)} base',
-                        style: const TextStyle(color: Color(0xFF10B981), fontSize: 12)),
-                  ])),
-                ]),
-              ),
-              const SizedBox(height: 20),
-            ],
-            if (item.imagenReferencia != null && item.imagenReferencia!.isNotEmpty) ...[
-              _sheetLabel('IMAGEN DE REFERENCIA'),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: _buildImagenReferencia(item.imagenReferencia!),
-              ),
-            ],
-          ]),
+          child: _buildContenidoDetalle(item, color),
         ),
       ),
     );
   }
+
+  Widget _buildContenidoDetalle(Personalizacion item, Color color) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Center(child: Container(
+        width: 36, height: 4,
+        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+      )),
+      const SizedBox(height: 16),
+      _buildDetalleHeader(item, color),
+      const SizedBox(height: 20),
+      _buildDetallePrecio(item),
+      const SizedBox(height: 20),
+      _sheetLabel('PERSONALIZACIÓN'),
+      const SizedBox(height: 10),
+      _buildDetallePersonalizacion(item),
+      const SizedBox(height: 20),
+      if (item.producto != null) ...[
+        _sheetLabel('GORRA BASE'),
+        const SizedBox(height: 10),
+        _buildDetalleProductoBase(item),
+        const SizedBox(height: 20),
+      ],
+      if (item.imagenReferencia != null && item.imagenReferencia!.isNotEmpty) ...[
+        _sheetLabel('IMAGEN DE REFERENCIA'),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: _buildImagenReferencia(item.imagenReferencia!),
+        ),
+      ],
+    ]);
+  }
+
+  // ── Eliminar ──────────────────────────────────────────────────────────────
 
   Future<void> _eliminar(Personalizacion item) async {
     final ok = await showDialog<bool>(
@@ -428,6 +447,8 @@ class _PersonalizacionesAdminScreenState
     _snack(r['message'] ?? (r['success'] ? 'Eliminado' : 'Error'), error: !r['success']);
     if (r['success']) _cargar();
   }
+
+  // ── Scaffold ──────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -457,6 +478,8 @@ class _PersonalizacionesAdminScreenState
     );
   }
 
+  // ── Buscador ──────────────────────────────────────────────────────────────
+
   Widget _buildBuscador() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
@@ -483,56 +506,64 @@ class _PersonalizacionesAdminScreenState
     );
   }
 
+  // ── Filtros de estado ─────────────────────────────────────────────────────
+
+  int _contarEstado(String estado) => estado == 'todos'
+      ? _items.length
+      : _items.where((i) => i.estado == estado).length;
+
+  Widget _buildChipEstado(String estado) {
+    final sel   = _filtroEstado == estado;
+    final color = estado == 'todos' ? _red : (_coloresEstado[estado] ?? Colors.grey);
+    final count = _contarEstado(estado);
+    final label = estado == 'todos' ? 'Todos' : _capitalize(estado.replaceAll('_', ' '));
+
+    return GestureDetector(
+      onTap: () => setState(() { _filtroEstado = estado; _page = 0; _aplicarFiltro(); }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+        decoration: BoxDecoration(
+          color: sel ? color.withOpacity(0.15) : _card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: sel ? color : _border, width: sel ? 1.5 : 1),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(label,
+              style: TextStyle(
+                  color: sel ? color : Colors.white38,
+                  fontSize: 12,
+                  fontWeight: sel ? FontWeight.bold : FontWeight.normal)),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text('$count',
+                style: TextStyle(
+                    color: sel ? color : Colors.white24,
+                    fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        ]),
+      ),
+    );
+  }
+
   Widget _buildFiltrosEstado() {
     return SizedBox(
       height: 42,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        children: _estados.map((estado) {
-          final sel   = _filtroEstado == estado;
-          final color = estado == 'todos' ? _red : (_coloresEstado[estado] ?? Colors.grey);
-          final count = estado == 'todos'
-              ? _items.length
-              : _items.where((i) => i.estado == estado).length;
-          return GestureDetector(
-            onTap: () => setState(() { _filtroEstado = estado; _page = 0; _aplicarFiltro(); }),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-              decoration: BoxDecoration(
-                color: sel ? color.withOpacity(0.15) : _card,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: sel ? color : _border, width: sel ? 1.5 : 1),
-              ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                  estado == 'todos' ? 'Todos' : _capitalize(estado.replaceAll('_', ' ')),
-                  style: TextStyle(
-                      color: sel ? color : Colors.white38,
-                      fontSize: 12,
-                      fontWeight: sel ? FontWeight.bold : FontWeight.normal),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text('$count',
-                      style: TextStyle(
-                          color: sel ? color : Colors.white24,
-                          fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ]),
-            ),
-          );
-        }).toList(),
+        children: _estados.map(_buildChipEstado).toList(),
       ),
     );
   }
+
+  // ── Lista ─────────────────────────────────────────────────────────────────
 
   String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
@@ -555,7 +586,7 @@ class _PersonalizacionesAdminScreenState
     );
   }
 
-  // ── FIX L544: _buildCard partido en sub-widgets ───────────────────────
+  // ── Card ──────────────────────────────────────────────────────────────────
 
   Widget _buildCardFila1(Personalizacion item, Color color) {
     return Row(children: [
@@ -635,7 +666,6 @@ class _PersonalizacionesAdminScreenState
     ]);
   }
 
-  // ✅ FIX L544: complejidad reducida extrayendo sub-widgets
   Widget _buildCard(Personalizacion item, AuthProvider auth) {
     final color = _coloresEstado[item.estado] ?? Colors.grey;
     return Card(
@@ -672,30 +702,36 @@ class _PersonalizacionesAdminScreenState
     );
   }
 
+  // ── Paginación ────────────────────────────────────────────────────────────
+
+  Widget _buildSelectorTamanoPagina() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
+          color: _card, borderRadius: BorderRadius.circular(8), border: Border.all(color: _border)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _pageSize,
+          dropdownColor: _card, isDense: true,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+          icon: const Icon(Icons.expand_more, color: _red, size: 16),
+          items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
+          onChanged: (v) {
+            if (v == null) return;
+            setState(() { _pageSize = v; _page = 0; });
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildPaginacion() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: const BoxDecoration(
           color: _surface, border: Border(top: BorderSide(color: _border))),
       child: Row(children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-          decoration: BoxDecoration(
-              color: _card, borderRadius: BorderRadius.circular(8), border: Border.all(color: _border)),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _pageSize,
-              dropdownColor: _card, isDense: true,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-              icon: const Icon(Icons.expand_more, color: _red, size: 16),
-              items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
-              onChanged: (v) {
-                if (v == null) return;
-                setState(() { _pageSize = v; _page = 0; });
-              },
-            ),
-          ),
-        ),
+        _buildSelectorTamanoPagina(),
         const SizedBox(width: 10),
         _btnPag(Icons.chevron_left, _page > 0, () => setState(() => _page--)),
         Expanded(child: Center(child: Text(
@@ -720,6 +756,8 @@ class _PersonalizacionesAdminScreenState
           child: Icon(icon, color: enabled ? _red : Colors.white12, size: 18),
         ),
       );
+
+  // ── Helpers UI ────────────────────────────────────────────────────────────
 
   Widget _sheetLabel(String t) => Text(t,
       style: const TextStyle(
@@ -814,4 +852,4 @@ class _PersonalizacionesAdminScreenState
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ));
   }
-} 
+}
