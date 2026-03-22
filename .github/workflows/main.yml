@@ -1,0 +1,34 @@
+name: Flutter + SonarCloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repo
+        uses: actions/checkout@v3
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      - name: Analizar código
+        run: flutter analyze
+
+      - name: Ejecutar tests
+        run: flutter test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
