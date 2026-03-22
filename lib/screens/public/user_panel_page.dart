@@ -1,12 +1,11 @@
 // lib/screens/user/user_panel_page.dart
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/user_service.dart';
 
 class UserPanelPage extends StatefulWidget {
-  const UserPanelPage({Key? key}) : super(key: key);
+  const UserPanelPage({super.key});
 
   @override
   State<UserPanelPage> createState() => _UserPanelPageState();
@@ -146,8 +145,11 @@ class _PedidosTabState extends State<_PedidosTab> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (r['success']) _pedidos = r['data'] ?? [];
-      else _error = r['message'];
+      if (r['success']) {
+        _pedidos = r['data'] ?? [];
+      } else {
+        _error = r['message'];
+      }
     });
   }
 
@@ -290,7 +292,7 @@ class _PedidosTabState extends State<_PedidosTab> {
                                       fontWeight: FontWeight.bold)),
                             ]),
                           );
-                        }).toList(),
+                        }),
                       ],
               ),
             ),
@@ -326,8 +328,11 @@ class _PersonalizacionesTabState extends State<_PersonalizacionesTab> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (r['success']) _items = r['data'] ?? [];
-      else _error = r['message'];
+      if (r['success']) {
+        _items = r['data'] ?? [];
+      } else {
+        _error = r['message'];
+      }
     });
   }
 
@@ -684,8 +689,11 @@ class _PqrsTabState extends State<_PqrsTab> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (r['success']) _pqrs = r['data'] ?? [];
-      else _error = r['message'];
+      if (r['success']) {
+        _pqrs = r['data'] ?? [];
+      } else {
+        _error = r['message'];
+      }
     });
   }
 

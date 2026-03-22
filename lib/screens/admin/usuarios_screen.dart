@@ -612,7 +612,7 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
                         Text('Editar', style: TextStyle(color: Colors.white))])),
                 PopupMenuItem(value: 'toggle',
                     child: Row(children: [
-                      Icon(activo ? Icons.block : Icons.check_circle, color: Color(0xFFFF2770)),
+                      Icon(activo ? Icons.block : Icons.check_circle, color: const Color(0xFFFF2770)),
                       const SizedBox(width: 8),
                       Text(activo ? 'Desactivar' : 'Activar', style: const TextStyle(color: Colors.white)),
                     ])),

@@ -5,7 +5,7 @@ import '../../services/pqrs_service.dart';
 import '../../providers/auth_provider.dart';
 
 class PqrsPage extends StatefulWidget {
-  const PqrsPage({Key? key}) : super(key: key);
+  const PqrsPage({super.key});
 
   @override
   State<PqrsPage> createState() => _PqrsPageState();

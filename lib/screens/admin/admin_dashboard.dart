@@ -286,7 +286,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           children: [
             _buildAdminCard(context, icon: Icons.people, title: 'USUARIOS',
                 subtitle: 'Gestión de usuarios', color: _green,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => UsuariosScreen()))),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UsuariosScreen()))),
             _buildAdminCard(context, icon: Icons.theater_comedy, title: 'ROLES',
                 subtitle: 'Roles y permisos', color: const Color(0xFF3B82F6),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RolesScreen()))),
@@ -313,7 +313,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PagosScreen()))),
             _buildAdminCard(context, icon: Icons.support_agent, title: 'PQRS',
                 subtitle: 'Quejas y reclamos', color: _pink,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PqrsAdminScreen()))),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PqrsAdminScreen()))),
           ],
         ),
       ]),

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 
 class PqrsAdminScreen extends StatefulWidget {
-  PqrsAdminScreen({Key? key}) : super(key: key);  
+  const PqrsAdminScreen({super.key});  
 
   @override
   State<PqrsAdminScreen> createState() => _PqrsAdminScreenState();
@@ -112,7 +112,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
                 const Text('Estado:', style: TextStyle(color: Colors.white54, fontSize: 12)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: estadoSeleccionado,
+                  initialValue: estadoSeleccionado,
                   dropdownColor: _card,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
@@ -419,7 +419,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
           // Header de la card
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: _border)),
             ),
             child: Row(
@@ -498,7 +498,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
           // Acciones
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               border: Border(top: BorderSide(color: _border)),
             ),
             child: Row(
@@ -579,7 +579,7 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.inbox_outlined, size: 64, color: Colors.white12),
+          const Icon(Icons.inbox_outlined, size: 64, color: Colors.white12),
           const SizedBox(height: 12),
           Text(
             'No hay PQRS ${_filtroEstado == 'todos' ? '' : 'con estado "$_filtroEstado"'}',

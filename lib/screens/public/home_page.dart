@@ -6,7 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -942,9 +942,9 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       padding: EdgeInsets.symmetric(
           horizontal: isMobile ? 24 : 40, vertical: isMobile ? 32 : 44),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: _border)),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [Color(0xFF060606), Color(0xFF000000)],

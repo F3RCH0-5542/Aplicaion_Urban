@@ -352,7 +352,7 @@ class _InventarioScreenState extends State<InventarioScreen>
                                               ],
                                             ),
                                           ),
-                                          Icon(Icons.chevron_right,
+                                          const Icon(Icons.chevron_right,
                                               color: Colors.white24,
                                               size: 16),
                                         ]),
@@ -378,8 +378,9 @@ class _InventarioScreenState extends State<InventarioScreen>
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Requerido';
                           if (int.tryParse(v) == null ||
-                              int.parse(v) <= 0)
+                              int.parse(v) <= 0) {
                             return 'Ingresa un número válido';
+                          }
                           return null;
                         },
                         decoration: InputDecoration(
@@ -633,14 +634,14 @@ class _InventarioScreenState extends State<InventarioScreen>
             ? const Center(
                 child: CircularProgressIndicator(color: _cyan))
             : _movimientos.isEmpty
-                ? Center(
+                ? const Center(
                     child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                       Icon(Icons.inbox_outlined,
                           size: 64, color: Colors.white12),
-                      const SizedBox(height: 12),
-                      const Text('No hay movimientos',
+                      SizedBox(height: 12),
+                      Text('No hay movimientos',
                           style: TextStyle(color: Colors.white38)),
                     ]))
                 : ListView.builder(

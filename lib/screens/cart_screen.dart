@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key? key}) : super(key: key);
+  const CartScreen({super.key});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -551,7 +551,7 @@ class _CartScreenState extends State<CartScreen> {
         const SizedBox(height: 16),
 
         DropdownButtonFormField<String>(
-          value: _metodoPago,
+          initialValue: _metodoPago,
           dropdownColor: const Color(0xFF2a2a2a),
           style: const TextStyle(color: Colors.white, fontSize: 16),
           decoration: InputDecoration(

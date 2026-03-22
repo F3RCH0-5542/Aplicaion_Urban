@@ -991,7 +991,7 @@ class _PersonalizacionesAdminScreenState
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              Text('$label',
+              Text(label,
                   style: const TextStyle(
                       color: Colors.white38, fontSize: 13)),
               const SizedBox(height: 4),
@@ -1029,10 +1029,11 @@ class _PersonalizacionesAdminScreenState
   // ── Imagen helpers ────────────────────────────────────────────────
   Widget _buildImagen(String? url, {double size = 80}) {
     if (url == null || url.isEmpty) return _placeholder(size, size);
-    if (url.startsWith('http'))
+    if (url.startsWith('http')) {
       return Image.network(url,
           width: size, height: size, fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _placeholder(size, size));
+    }
     return Image.asset(url,
         width: size, height: size, fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _placeholder(size, size));

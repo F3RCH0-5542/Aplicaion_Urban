@@ -4,7 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 
 class WhitePage extends StatefulWidget {
-  const WhitePage({Key? key}) : super(key: key);
+  const WhitePage({super.key});
 
   @override
   State<WhitePage> createState() => _WhitePageState();
@@ -248,9 +248,9 @@ class _WhitePageState extends State<WhitePage> {
           color: const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFF2a2a2a))),
-      child: TextField(
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-          decoration: const InputDecoration(
+      child: const TextField(
+          style: TextStyle(color: Colors.white, fontSize: 14),
+          decoration: InputDecoration(
               hintText: 'Buscar gorras...',
               hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
               border: InputBorder.none,
@@ -319,13 +319,13 @@ class _WhitePageState extends State<WhitePage> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                   gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                    const Color(0xFF667eea),
-                    const Color(0xFF764ba2)
+                    Color(0xFF667eea),
+                    Color(0xFF764ba2)
                   ])),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +425,7 @@ class _WhitePageState extends State<WhitePage> {
   }
 
   Widget _buildHeroImage() {
-    return Container(
+    return SizedBox(
         height: 500,
         width: double.infinity,
         child: Image.asset('assets/img/Sox/Wall.jpg',
@@ -477,10 +477,10 @@ class _WhitePageState extends State<WhitePage> {
       width: cardWidth,
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [const Color(0xFF1a1a1a), const Color(0xFF0f0f0f)]),
+              colors: [Color(0xFF1a1a1a), Color(0xFF0f0f0f)]),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFF2a2a2a), width: 1),
           boxShadow: [
@@ -495,10 +495,10 @@ class _WhitePageState extends State<WhitePage> {
           Container(
               height: 200,
               width: double.infinity,
-              decoration: BoxDecoration(
-                  color: const Color(0xFF0a0a0a),
+              decoration: const BoxDecoration(
+                  color: Color(0xFF0a0a0a),
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12))),
+                      BorderRadius.vertical(top: Radius.circular(12))),
               child: ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),

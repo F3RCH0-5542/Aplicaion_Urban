@@ -6,7 +6,7 @@ import '../services/api_config.dart';
 /// Widget para probar la conexión con el backend
 /// Útil durante el desarrollo
 class ConnectionTestButton extends StatefulWidget {
-  const ConnectionTestButton({Key? key}) : super(key: key);
+  const ConnectionTestButton({super.key});
 
   @override
   State<ConnectionTestButton> createState() => _ConnectionTestButtonState();

@@ -18,9 +18,9 @@ class _RolesScreenState extends State<RolesScreen> {
 
   // Colores por rol
   final Map<int, Color> _coloresRol = {
-    1: Color(0xFFFF2770), // super_admin - rojo
-    2: Color(0xFF45F3FF), // usuario - cyan
-    3: Color(0xFF10B981), // admin - verde
+    1: const Color(0xFFFF2770), // super_admin - rojo
+    2: const Color(0xFF45F3FF), // usuario - cyan
+    3: const Color(0xFF10B981), // admin - verde
   };
 
   final Map<int, IconData> _iconosRol = {
@@ -69,7 +69,7 @@ class _RolesScreenState extends State<RolesScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1a1a1a),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [
+        title: const Row(children: [
           Icon(Icons.edit, color: Color(0xFF45F3FF), size: 20),
           SizedBox(width: 8),
           Text('Editar Rol', style: TextStyle(color: Colors.white)),
