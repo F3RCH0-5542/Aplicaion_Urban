@@ -23,8 +23,6 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
   static const _bg     = Color(0xFF0D0D0D);
   static const _card   = Color(0xFF1A1A1A);
   static const _border = Color(0xFF2A2A2A);
-
-  // ✅ FIX: constante para evitar literal duplicado "En Proceso"
   static const _estadoEnProceso = 'En Proceso';
 
   @override
@@ -55,7 +53,6 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
     });
   }
 
-  // ✅ FIX: sub-widgets para reducir complejidad de _abrirDialogoResponder
   Widget _buildInfoSolicitante(Pqrs pqrs) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -135,7 +132,6 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
     ]);
   }
 
-  // ✅ FIX: complejidad reducida extrayendo sub-widgets
   void _abrirDialogoResponder(Pqrs pqrs) {
     final controller = TextEditingController(text: pqrs.respuesta ?? '');
     String estadoSeleccionado = 'Resuelto';
@@ -423,9 +419,9 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: _cyan.withValues(alpha: 0.05),
+                  color: _cyan.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: _cyan.withValues(alpha: 0.2)),
+                  border: Border.all(color: _cyan.withOpacity(0.2)),
                 ),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Icon(Icons.reply, color: _cyan, size: 16),
@@ -487,9 +483,9 @@ class _PqrsAdminScreenState extends State<PqrsAdminScreen> {
   Widget _chipEstado(String estado, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.15),
+      color: color.withOpacity(0.15),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: color.withValues(alpha: 0.4)),
+      border: Border.all(color: color.withOpacity(0.4)),
     ),
     child: Text(estado,
         style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
