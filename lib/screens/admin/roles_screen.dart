@@ -223,7 +223,7 @@ class _RolesScreenState extends State<RolesScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1a1a1a),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _cyan.withValues(alpha: 0.2)),
+        border: Border.all(color: _cyan.withOpacity( 0.2)),
       ),
       child: Row(children: [
         const Icon(Icons.info_outline, color: _cyan, size: 18),
@@ -261,7 +261,7 @@ class _RolesScreenState extends State<RolesScreen> {
       color: const Color(0xFF1a1a1a),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color.withValues(alpha: 0.3)),
+        side: BorderSide(color: color.withOpacity( 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -269,9 +269,9 @@ class _RolesScreenState extends State<RolesScreen> {
           Container(
             width: 52, height: 52,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: color.withOpacity( 0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withValues(alpha: 0.4)),
+              border: Border.all(color: color.withOpacity( 0.4)),
             ),
             child: Icon(icono, color: color, size: 28),
           ),
@@ -281,7 +281,7 @@ class _RolesScreenState extends State<RolesScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
+                  color: color.withOpacity( 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text('#${rol.idRol}',
