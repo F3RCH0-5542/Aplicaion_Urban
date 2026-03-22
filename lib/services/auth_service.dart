@@ -10,7 +10,7 @@ class AuthService {
   /// Login del usuario
   static Future<Map<String, dynamic>> login(String correo, String clave) async {
     try {
-      debug// print('🔵 [AUTH] Intentando login para: $correo');
+      debugPrint('🔵 [AUTH] Intentando login para: $correo');
 
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
@@ -18,7 +18,7 @@ class AuthService {
         body: json.encode({'correo': correo.trim(), 'clave': clave}),
       );
 
-      debug// print('📥 [AUTH] Respuesta: ${response.statusCode}');
+      debugPrint('📥 [AUTH] Respuesta: ${response.statusCode}');
       final data = json.decode(response.body);
 
       if (response.statusCode == 200) {
@@ -30,13 +30,13 @@ class AuthService {
           correo: correo,
           rol: data['id_rol'],
         );
-        debug// print('✅ [AUTH] Login exitoso. userId guardado: ${data['id_usuario']}');
+        debugPrint('✅ [AUTH] Login exitoso. userId guardado: ${data['id_usuario']}');
         return {'success': true, 'message': 'Login exitoso', 'data': data};
       } else {
         return {'success': false, 'message': data['msg'] ?? 'Credenciales inválidas'};
       }
     } catch (e) {
-      debug// print('❌ [AUTH] Error: $e');
+      debugPrint('❌ [AUTH] Error: $e');
       return {'success': false, 'message': 'Error de conexión con el servidor'};
     }
   }
@@ -89,7 +89,7 @@ class AuthService {
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    debug// print('🚪 [AUTH] Sesión cerrada');
+    debugPrint('🚪 [AUTH] Sesión cerrada');
   }
 
   // ─── SESIÓN ────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ class AuthService {
     await prefs.setString('correo', correo);
     await prefs.setInt('rol', rol);
     await prefs.setString('rolNombre', rol == 1 ? 'admin' : 'usuario');
-    debug// print('💾 [AUTH] Sesión guardada: $nombre $apellido (rol: $rol, id: $userId)');
+    debugPrint('💾 [AUTH] Sesión guardada: $nombre $apellido (rol: $rol, id: $userId)');
   }
 
   static Future<String?> getToken() async {
@@ -192,12 +192,12 @@ class AuthService {
 
   static Future<void> debugPrintSession() async {
     final prefs = await SharedPreferences.getInstance();
-    debug// print('═══════════════════════════════════════');
-    debug// print('🔍 SESIÓN ACTUAL');
-    debug// print('Token: ${prefs.getString('token')}');
-    debug// print('UserId: ${prefs.getInt('userId')}');
-    debug// print('Nombre: ${prefs.getString('nombre')} ${prefs.getString('apellido')}');
-    debug// print('Rol: ${prefs.getString('rolNombre')}');
-    debug// print('═══════════════════════════════════════');
+    debugPrint('═══════════════════════════════════════');
+    debugPrint('🔍 SESIÓN ACTUAL');
+    debugPrint('Token: ${prefs.getString('token')}');
+    debugPrint('UserId: ${prefs.getInt('userId')}');
+    debugPrint('Nombre: ${prefs.getString('nombre')} ${prefs.getString('apellido')}');
+    debugPrint('Rol: ${prefs.getString('rolNombre')}');
+    debugPrint('═══════════════════════════════════════');
   }
 }
