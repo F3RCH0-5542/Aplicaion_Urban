@@ -34,7 +34,9 @@ class _EnviosScreenState extends State<EnviosScreen> {
       ? 1
       : (_enviosFiltrados.length / _pageSize).ceil();
 
-  final List<String> _estados = ['todos', 'pendiente', 'en_camino', 'entregado', 'devuelto'];
+  final List<String> _estados = [
+    'todos', 'pendiente', 'en_camino', 'entregado', 'devuelto'
+  ];
 
   final Map<String, Color> _coloresEstado = {
     'pendiente': const Color(0xFFF59E0B),
@@ -55,7 +57,10 @@ class _EnviosScreenState extends State<EnviosScreen> {
     super.initState();
     _cargarEnvios();
     _busquedaCtrl.addListener(() {
-      setState(() { _currentPage = 0; _aplicarFiltros(); });
+      setState(() {
+        _currentPage = 0;
+        _aplicarFiltros();
+      });
     });
   }
 
@@ -71,15 +76,18 @@ class _EnviosScreenState extends State<EnviosScreen> {
   }
 
   Map<String, String> _headers(String token) => {
-    'Content-Type': 'application/json',
-    'x-access-token': token,
-  };
+        'Content-Type': 'application/json',
+        'x-access-token': token,
+      };
 
   Future<void> _cargarEnvios() async {
     setState(() => _cargando = true);
     try {
       final token = await _getToken();
-      if (token == null) { _mostrarError('No autenticado'); return; }
+      if (token == null) {
+        _mostrarError('No autenticado');
+        return;
+      }
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/envios'),
         headers: _headers(token),
@@ -105,23 +113,32 @@ class _EnviosScreenState extends State<EnviosScreen> {
     if (busqueda.isEmpty) return true;
     final pedido  = e['Pedido'];
     final usuario = pedido?['Usuario'];
-    final nombre  = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.toLowerCase();
+    final nombre  =
+        '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'
+            .toLowerCase();
     final idEnvio = e['id_envio'].toString();
     final ciudad  = (e['ciudad'] ?? '').toLowerCase();
-    return nombre.contains(busqueda) || idEnvio.contains(busqueda) || ciudad.contains(busqueda);
+    return nombre.contains(busqueda) ||
+        idEnvio.contains(busqueda) ||
+        ciudad.contains(busqueda);
   }
 
   void _aplicarFiltros() {
     final busqueda = _busquedaCtrl.text.toLowerCase();
     setState(() {
       _enviosFiltrados = _envios.where((e) {
-        final coincideEstado = _filtroEstado == 'todos' || e['estado_envio'] == _filtroEstado;
+        final coincideEstado =
+            _filtroEstado == 'todos' || e['estado_envio'] == _filtroEstado;
         return _coincideBusqueda(e, busqueda) && coincideEstado;
       }).toList();
     });
   }
 
-  Widget _buildOpcionEstado(String e, String estadoSeleccionado, void Function(String) onSelect) {
+  Widget _buildOpcionEstado(
+    String e,
+    String estadoSeleccionado,
+    void Function(String) onSelect,
+  ) {
     final seleccionado = estadoSeleccionado == e;
     final color = _coloresEstado[e] ?? Colors.grey;
     return GestureDetector(
@@ -130,7 +147,9 @@ class _EnviosScreenState extends State<EnviosScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: seleccionado ? color.withOpacity(0.25) : const Color(0xFF0a0a0a),
+          color: seleccionado
+              ? color.withOpacity(0.25)
+              : const Color(0xFF0a0a0a),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: seleccionado ? color : const Color(0xFF2a2a2a),
@@ -142,7 +161,8 @@ class _EnviosScreenState extends State<EnviosScreen> {
           style: TextStyle(
             color: seleccionado ? color : Colors.white54,
             fontSize: 11,
-            fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
+            fontWeight:
+                seleccionado ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
@@ -156,9 +176,11 @@ class _EnviosScreenState extends State<EnviosScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setStateDialog) => AlertDialog(
           backgroundColor: const Color(0xFF1a1a1a),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
-            const Icon(Icons.local_shipping, color: Color(0xFFF97316), size: 20),
+            const Icon(Icons.local_shipping,
+                color: Color(0xFFF97316), size: 20),
             const SizedBox(width: 8),
             Text('Envío #${envio['id_envio']}',
                 style: const TextStyle(color: Colors.white, fontSize: 16)),
@@ -171,29 +193,42 @@ class _EnviosScreenState extends State<EnviosScreen> {
                   style: TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 12),
               Wrap(
-                spacing: 8, runSpacing: 8,
-                children: ['pendiente', 'en_camino', 'entregado', 'devuelto'].map((e) =>
-                  _buildOpcionEstado(e, estadoSeleccionado, (val) => setStateDialog(() => estadoSeleccionado = val))
-                ).toList(),
+                spacing: 8,
+                runSpacing: 8,
+                children: ['pendiente', 'en_camino', 'entregado', 'devuelto']
+                    .map((e) => _buildOpcionEstado(
+                          e,
+                          estadoSeleccionado,
+                          (val) => setStateDialog(
+                              () => estadoSeleccionado = val),
+                        ))
+                    .toList(),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
+              child: const Text('Cancelar',
+                  style: TextStyle(color: Colors.white38)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF97316),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () async {
-                if (estadoSeleccionado == envio['estado_envio']) { Navigator.pop(ctx); return; }
+                if (estadoSeleccionado == envio['estado_envio']) {
+                  Navigator.pop(ctx);
+                  return;
+                }
                 Navigator.pop(ctx);
-                await _actualizarEstado(envio['id_envio'], estadoSeleccionado);
+                await _actualizarEstado(
+                    envio['id_envio'], estadoSeleccionado);
               },
-              child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+              child: const Text('Guardar',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -204,7 +239,10 @@ class _EnviosScreenState extends State<EnviosScreen> {
   Future<void> _actualizarEstado(int idEnvio, String nuevoEstado) async {
     try {
       final token = await _getToken();
-      if (token == null) { _mostrarError('No autenticado'); return; }
+      if (token == null) {
+        _mostrarError('No autenticado');
+        return;
+      }
       final response = await http.patch(
         Uri.parse('${ApiConfig.baseUrl}/envios/$idEnvio'),
         headers: _headers(token),
@@ -248,33 +286,50 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 child: Container(
                   width: 40, height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Envío #${envio['id_envio']}',
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
                   GestureDetector(
-                    onTap: () { Navigator.pop(context); _cambiarEstado(envio); },
+                    onTap: () {
+                      Navigator.pop(context);
+                      _cambiarEstado(envio);
+                    },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: color.withOpacity(0.6)),
+                        border:
+                            Border.all(color: color.withOpacity(0.6)),
                       ),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(icono, size: 13, color: color),
-                        const SizedBox(width: 4),
-                        Text(
-                          (envio['estado_envio'] ?? '').replaceAll('_', ' ').toUpperCase(),
-                          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.edit, size: 11, color: color),
-                      ]),
+                      child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icono, size: 13, color: color),
+                            const SizedBox(width: 4),
+                            Text(
+                              (envio['estado_envio'] ?? '')
+                                  .replaceAll('_', ' ')
+                                  .toUpperCase(),
+                              style: TextStyle(
+                                  color: color,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.edit, size: 11, color: color),
+                          ]),
                     ),
                   ),
                 ],
@@ -289,16 +344,21 @@ class _EnviosScreenState extends State<EnviosScreen> {
               const SizedBox(height: 12),
               if (usuario != null) ...[
                 _seccion('Cliente', Icons.person, [
-                  _fila('Nombre', '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'),
+                  _fila('Nombre',
+                      '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'),
                   _fila('Correo', usuario['correo'] ?? '-'),
                 ]),
                 const SizedBox(height: 12),
               ],
               if (pedido != null)
                 _seccion('Pedido vinculado', Icons.receipt_long, [
-                  _fila('ID pedido',    '#${pedido['id_pedido']}'),
-                  _fila('Fecha pedido', _formatFecha(pedido['fecha_pedido'])),
-                  _fila('Total', '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(2) ?? '0.00'}'),
+                  _fila('ID pedido', '#${pedido['id_pedido']}'),
+                  _fila('Fecha pedido',
+                      _formatFecha(pedido['fecha_pedido'])),
+                  _fila(
+                    'Total',
+                    '\$${double.tryParse(pedido['total'].toString())?.toStringAsFixed(2) ?? '0.00'}',
+                  ),
                 ]),
             ],
           ),
@@ -307,62 +367,111 @@ class _EnviosScreenState extends State<EnviosScreen> {
     );
   }
 
-  Widget _seccion(String titulo, IconData icono, List<Widget> hijos) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: const Color(0xFF0a0a0a),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: const Color(0xFF2a2a2a)),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(children: [
-          Icon(icono, color: const Color(0xFFF97316), size: 15),
-          const SizedBox(width: 6),
-          Text(titulo, style: const TextStyle(
-            color: Color(0xFFF97316), fontWeight: FontWeight.bold,
-            fontSize: 12, letterSpacing: 0.5)),
-        ]),
-        const SizedBox(height: 10),
-        ...hijos,
-      ],
-    ),
-  );
+  Widget _seccion(
+          String titulo, IconData icono, List<Widget> hijos) =>
+      Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0a0a0a),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF2a2a2a)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icono, color: const Color(0xFFF97316), size: 15),
+              const SizedBox(width: 6),
+              Text(titulo,
+                  style: const TextStyle(
+                      color: Color(0xFFF97316),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      letterSpacing: 0.5)),
+            ]),
+            const SizedBox(height: 10),
+            ...hijos,
+          ],
+        ),
+      );
 
   Widget _fila(String label, String valor) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-        Flexible(
-          child: Text(valor,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              textAlign: TextAlign.end, overflow: TextOverflow.ellipsis),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white54, fontSize: 13)),
+            Flexible(
+              child: Text(valor,
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 13),
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   String _formatFecha(dynamic fecha) {
     if (fecha == null) return '-';
     try {
       final dt = DateTime.parse(fecha.toString());
-      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    } catch (_) { return fecha.toString(); }
+      return '${dt.day.toString().padLeft(2, '0')}/'
+          '${dt.month.toString().padLeft(2, '0')}/'
+          '${dt.year}';
+    } catch (_) {
+      return fecha.toString();
+    }
   }
 
-  void _mostrarError(String msg) => _mostrarSnack(msg, color: const Color(0xFFEF4444));
+  void _mostrarError(String msg) =>
+      _mostrarSnack(msg, color: const Color(0xFFEF4444));
 
-  void _mostrarSnack(String msg, {Color color = const Color(0xFF10B981)}) {
+  void _mostrarSnack(String msg,
+      {Color color = const Color(0xFF10B981)}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ));
+  }
+
+  // ── FIX SONAR: ternario anidado extraído a método ─────────────────────
+  Widget _buildCuerpo() {
+    if (_cargando) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFFF97316)),
+      );
+    }
+    if (_enviosPaginados.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.local_shipping_outlined,
+                size: 72, color: Colors.grey[800]),
+            const SizedBox(height: 14),
+            const Text('Sin envíos',
+                style: TextStyle(color: Colors.grey, fontSize: 15)),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _cargarEnvios,
+      color: const Color(0xFFF97316),
+      child: ListView.builder(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        itemCount: _enviosPaginados.length,
+        itemBuilder: (_, i) => _buildEnvioCard(_enviosPaginados[i]),
+      ),
+    );
   }
 
   @override
@@ -372,7 +481,8 @@ class _EnviosScreenState extends State<EnviosScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0a0a0a),
         title: const Text('Envíos',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -394,22 +504,30 @@ class _EnviosScreenState extends State<EnviosScreen> {
               style: const TextStyle(color: Colors.white, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Buscar por cliente, ciudad o # envío...',
-                hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: Colors.white24),
+                hintStyle: const TextStyle(
+                    color: Colors.white24, fontSize: 13),
+                prefixIcon:
+                    const Icon(Icons.search, color: Colors.white24),
                 suffixIcon: _busquedaCtrl.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white24, size: 18),
+                        icon: const Icon(Icons.close,
+                            color: Colors.white24, size: 18),
                         onPressed: () {
                           _busquedaCtrl.clear();
-                          setState(() { _currentPage = 0; _aplicarFiltros(); });
+                          setState(() {
+                            _currentPage = 0;
+                            _aplicarFiltros();
+                          });
                         },
                       )
                     : null,
                 filled: true,
                 fillColor: const Color(0xFF1a1a1a),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none),
               ),
             ),
           ),
@@ -417,33 +535,16 @@ class _EnviosScreenState extends State<EnviosScreen> {
             height: 42,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              children: _estados.map((estado) => _buildFiltroChip(estado)).toList(),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 4),
+              children: _estados
+                  .map((estado) => _buildFiltroChip(estado))
+                  .toList(),
             ),
           ),
           const SizedBox(height: 4),
-          Expanded(
-            child: _cargando
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)))
-                : _enviosPaginados.isEmpty
-                    ? Center(child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.local_shipping_outlined, size: 72, color: Colors.grey[800]),
-                          const SizedBox(height: 14),
-                          const Text('Sin envíos', style: TextStyle(color: Colors.grey, fontSize: 15)),
-                        ],
-                      ))
-                    : RefreshIndicator(
-                        onRefresh: _cargarEnvios,
-                        color: const Color(0xFFF97316),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          itemCount: _enviosPaginados.length,
-                          itemBuilder: (_, i) => _buildEnvioCard(_enviosPaginados[i]),
-                        ),
-                      ),
-          ),
+          // ✅ FIX: ternario anidado reemplazado por _buildCuerpo()
+          Expanded(child: _buildCuerpo()),
           _buildPaginacion(),
         ],
       ),
@@ -451,40 +552,58 @@ class _EnviosScreenState extends State<EnviosScreen> {
   }
 
   Widget _buildFiltroChip(String estado) {
-    final sel   = _filtroEstado == estado;
-    final color = estado == 'todos' ? const Color(0xFFF97316) : (_coloresEstado[estado] ?? Colors.grey);
+    final sel = _filtroEstado == estado;
+    final color = estado == 'todos'
+        ? const Color(0xFFF97316)
+        : (_coloresEstado[estado] ?? Colors.grey);
     final count = estado == 'todos'
         ? _envios.length
         : _envios.where((e) => e['estado_envio'] == estado).length;
 
     return GestureDetector(
-      onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltros(); }),
+      onTap: () => setState(() {
+        _filtroEstado = estado;
+        _currentPage = 0;
+        _aplicarFiltros();
+      }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: sel ? color.withOpacity(0.15) : const Color(0xFF1a1a1a),
+          color: sel
+              ? color.withOpacity(0.15)
+              : const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: sel ? color : const Color(0xFF2a2a2a), width: sel ? 1.5 : 1),
+          border: Border.all(
+              color: sel ? color : const Color(0xFF2a2a2a),
+              width: sel ? 1.5 : 1),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(
             estado == 'todos' ? 'Todos' : estado.replaceAll('_', ' '),
             style: TextStyle(
-              color: sel ? color : Colors.white38, fontSize: 12,
-              fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+              color: sel ? color : Colors.white38,
+              fontSize: 12,
+              fontWeight:
+                  sel ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           const SizedBox(width: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
-              color: sel ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+              color: sel
+                  ? color.withOpacity(0.25)
+                  : Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text('$count', style: TextStyle(
-                color: sel ? color : Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),
+            child: Text('$count',
+                style: TextStyle(
+                    color: sel ? color : Colors.white24,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold)),
           ),
         ]),
       ),
@@ -492,14 +611,16 @@ class _EnviosScreenState extends State<EnviosScreen> {
   }
 
   String _clienteNombre(dynamic usuario) {
-    final nombre = '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'.trim();
+    final nombre =
+        '${usuario?['nombre'] ?? ''} ${usuario?['apellido'] ?? ''}'
+            .trim();
     return nombre.isEmpty ? 'Sin cliente' : nombre;
   }
 
   String _direccionTexto(dynamic envio) {
     final ciudad = envio['ciudad'] ?? '';
-    final dir = envio['direccion'] ?? '';
-    final texto = '$ciudad · $dir'.trim();
+    final dir    = envio['direccion'] ?? '';
+    final texto  = '$ciudad · $dir'.trim();
     return texto == '·' ? 'Sin dirección' : texto;
   }
 
@@ -507,7 +628,8 @@ class _EnviosScreenState extends State<EnviosScreen> {
     final pedido  = envio['Pedido'];
     final usuario = pedido?['Usuario'];
     final color   = _coloresEstado[envio['estado_envio']] ?? Colors.grey;
-    final icono   = _iconosEstado[envio['estado_envio']] ?? Icons.local_shipping;
+    final icono   =
+        _iconosEstado[envio['estado_envio']] ?? Icons.local_shipping;
 
     return GestureDetector(
       onTap: () => _mostrarDetalle(envio),
@@ -523,7 +645,8 @@ class _EnviosScreenState extends State<EnviosScreen> {
           Container(
             width: 44, height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10),
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icono, color: color, size: 22),
           ),
@@ -534,19 +657,25 @@ class _EnviosScreenState extends State<EnviosScreen> {
               children: [
                 Row(children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF97316).withOpacity(0.12),
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text('#${envio['id_envio']}',
-                        style: const TextStyle(color: Color(0xFFF97316), fontSize: 11, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(
+                            color: Color(0xFFF97316),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _clienteNombre(usuario),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -554,7 +683,8 @@ class _EnviosScreenState extends State<EnviosScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _direccionTexto(envio),
-                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                  style: const TextStyle(
+                      color: Colors.white38, fontSize: 11),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -565,18 +695,24 @@ class _EnviosScreenState extends State<EnviosScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(_formatFecha(envio['fecha']),
-                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                  style: const TextStyle(
+                      color: Colors.white38, fontSize: 11)),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: color.withOpacity(0.4)),
                 ),
                 child: Text(
-                  (envio['estado_envio'] ?? '').replaceAll('_', ' '),
-                  style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+                  (envio['estado_envio'] ?? '')
+                      .replaceAll('_', ' '),
+                  style: TextStyle(
+                      color: color,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -587,57 +723,83 @@ class _EnviosScreenState extends State<EnviosScreen> {
   }
 
   Widget _buildPaginacion() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    decoration: const BoxDecoration(
-      color: Color(0xFF0a0a0a),
-      border: Border(top: BorderSide(color: Color(0xFF1e1e1e))),
-    ),
-    child: Row(children: [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1a1a1a),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF2a2a2a)),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 16, vertical: 10),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0a0a0a),
+          border:
+              Border(top: BorderSide(color: Color(0xFF1e1e1e))),
         ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<int>(
-            value: _pageSize,
-            dropdownColor: const Color(0xFF1a1a1a),
-            isDense: true,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-            icon: const Icon(Icons.expand_more, color: Color(0xFFF97316), size: 16),
-            items: _pageSizes.map((s) => DropdownMenuItem(value: s, child: Text('$s / pág'))).toList(),
-            onChanged: (val) {
-              if (val == null) return;
-              setState(() { _pageSize = val; _currentPage = 0; });
-            },
+        child: Row(children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1a1a1a),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF2a2a2a)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _pageSize,
+                dropdownColor: const Color(0xFF1a1a1a),
+                isDense: true,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 12),
+                icon: const Icon(Icons.expand_more,
+                    color: Color(0xFFF97316), size: 16),
+                items: _pageSizes
+                    .map((s) => DropdownMenuItem(
+                        value: s, child: Text('$s / pág')))
+                    .toList(),
+                onChanged: (val) {
+                  if (val == null) return;
+                  setState(() {
+                    _pageSize = val;
+                    _currentPage = 0;
+                  });
+                },
+              ),
+            ),
           ),
-        ),
-      ),
-      const SizedBox(width: 8),
-      _btnPagina(Icons.chevron_left, _currentPage > 0, () => setState(() => _currentPage--)),
-      Expanded(
-        child: Center(
-          child: Text('Pág. ${_currentPage + 1} / $_totalPages',
-              style: const TextStyle(color: Colors.white38, fontSize: 12)),
-        ),
-      ),
-      _btnPagina(Icons.chevron_right, _currentPage < _totalPages - 1,
-          () => setState(() => _currentPage++)),
-    ]),
-  );
+          const SizedBox(width: 8),
+          _btnPagina(Icons.chevron_left, _currentPage > 0,
+              () => setState(() => _currentPage--)),
+          Expanded(
+            child: Center(
+              child: Text('Pág. ${_currentPage + 1} / $_totalPages',
+                  style: const TextStyle(
+                      color: Colors.white38, fontSize: 12)),
+            ),
+          ),
+          _btnPagina(
+              Icons.chevron_right,
+              _currentPage < _totalPages - 1,
+              () => setState(() => _currentPage++)),
+        ]),
+      );
 
-  Widget _btnPagina(IconData icon, bool enabled, VoidCallback onTap) => GestureDetector(
-    onTap: enabled ? onTap : null,
-    child: Container(
-      width: 32, height: 32,
-      decoration: BoxDecoration(
-        color: enabled ? const Color(0xFF1a1a1a) : const Color(0xFF0a0a0a),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: enabled ? const Color(0xFF2a2a2a) : Colors.transparent),
-      ),
-      child: Icon(icon, color: enabled ? const Color(0xFFF97316) : Colors.white12, size: 18),
-    ),
-  );
+  Widget _btnPagina(
+          IconData icon, bool enabled, VoidCallback onTap) =>
+      GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          width: 32, height: 32,
+          decoration: BoxDecoration(
+            color: enabled
+                ? const Color(0xFF1a1a1a)
+                : const Color(0xFF0a0a0a),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+                color: enabled
+                    ? const Color(0xFF2a2a2a)
+                    : Colors.transparent),
+          ),
+          child: Icon(icon,
+              color: enabled
+                  ? const Color(0xFFF97316)
+                  : Colors.white12,
+              size: 18),
+        ),
+      );
 }
