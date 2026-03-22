@@ -89,7 +89,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
     var lista = _filtroEstado == 'todos'
         ? List<Pedido>.from(_pedidos)
         : _pedidos.where((p) => p.estado == _filtroEstado).toList();
-
     if (_searchQuery.isNotEmpty) {
       lista = lista.where((p) {
         final idMatch     = p.idPedido.toString().contains(_searchQuery);
@@ -118,8 +117,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
         errorBuilder: (_, __, ___) => _imgPlaceholder(size: size));
   }
 
-  // ── FIX L138: _cambiarEstado partido en sub-métodos ───────────────────
-
   Widget _buildOpcionesEstado(String? estadoSel, void Function(String) onSelect) {
     return Wrap(
       spacing: 8, runSpacing: 8,
@@ -133,9 +130,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
             decoration: BoxDecoration(
               color: selected ? color.withOpacity(0.25) : const Color(0xFF0a0a0a),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: selected ? color : const Color(0xFF2a2a2a),
-                  width: selected ? 2 : 1),
+              border: Border.all(color: selected ? color : const Color(0xFF2a2a2a), width: selected ? 2 : 1),
             ),
             child: Text(
               estado.replaceAll('_', ' ').toUpperCase(),
@@ -153,7 +148,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
   Future<void> _cambiarEstado(Pedido pedido) async {
     final estadoActual = pedido.estado;
     String? nuevoEstado = estadoActual;
-
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -173,7 +167,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
               const Text('Cambiar estado:',
                   style: TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 12),
-              // ✅ FIX L138: opciones extraídas a _buildOpcionesEstado
               _buildOpcionesEstado(nuevoEstado, (e) => setStateDialog(() => nuevoEstado = e)),
             ],
           ),
@@ -232,8 +225,6 @@ class _PedidosScreenState extends State<PedidosScreen> {
     if (r['success']) _cargarPedidos();
   }
 
-  // ── FIX L248: _verDetalles partido en sub-métodos ─────────────────────
-
   Widget _buildHeaderPedido(Pedido p, Pedido pedido) {
     final color = _coloresEstado[p.estado] ?? Colors.grey;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -244,8 +235,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
           Text(p.usuario?.nombreCompleto ?? 'Usuario #${p.idUsuario}',
               style: const TextStyle(color: Colors.white54, fontSize: 13)),
           if (p.usuario?.correo != null)
-            Text(p.usuario!.correo,
-                style: const TextStyle(color: Colors.white38, fontSize: 12)),
+            Text(p.usuario!.correo, style: const TextStyle(color: Colors.white38, fontSize: 12)),
         ])),
         GestureDetector(
           onTap: () { Navigator.pop(context); _cambiarEstado(pedido); },
@@ -342,17 +332,12 @@ class _PedidosScreenState extends State<PedidosScreen> {
               decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
             )),
             const SizedBox(height: 16),
-
-            // ✅ FIX L248: header extraído
             _buildHeaderPedido(p, pedido),
             const SizedBox(height: 20),
-
-            // ✅ FIX L248: productos extraídos
             _seccionTitulo('PRODUCTOS', Icons.shopping_bag),
             const SizedBox(height: 8),
             _buildListaProductos(p),
             const SizedBox(height: 20),
-
             if (p.envio != null) ...[
               _seccionTitulo('ENVÍO', Icons.local_shipping),
               const SizedBox(height: 8),
@@ -365,19 +350,16 @@ class _PedidosScreenState extends State<PedidosScreen> {
               ]),
               const SizedBox(height: 20),
             ],
-
             if (p.pago != null) ...[
               _seccionTitulo('PAGO', Icons.credit_card),
               const SizedBox(height: 8),
               _infoCard([
                 _infoRow(Icons.payment, 'Método', p.pago!.metodoPago ?? 'N/A'),
-                _infoRow(Icons.attach_money, 'Monto',
-                    '\$${p.pago!.monto?.toStringAsFixed(0) ?? '0'}'),
+                _infoRow(Icons.attach_money, 'Monto', '\$${p.pago!.monto?.toStringAsFixed(0) ?? '0'}'),
                 _infoRow(Icons.check_circle, 'Estado', p.pago!.estadoPago ?? 'pendiente'),
               ]),
               const SizedBox(height: 20),
             ],
-
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -389,8 +371,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
                 const Text('TOTAL',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                 Text('\$${p.total.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                        color: Color(0xFFEF4444), fontSize: 22, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(color: Color(0xFFEF4444), fontSize: 22, fontWeight: FontWeight.bold)),
               ]),
             ),
             const SizedBox(height: 8),
@@ -404,8 +385,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
         Icon(icono, color: const Color(0xFFEF4444), size: 16),
         const SizedBox(width: 6),
         Text(titulo, style: const TextStyle(
-            color: Color(0xFFEF4444), fontSize: 12,
-            fontWeight: FontWeight.bold, letterSpacing: 1)),
+            color: Color(0xFFEF4444), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
       ]);
 
   Widget _infoCard(List<Widget> children) => Container(
@@ -432,8 +412,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
 
   Widget _imgPlaceholder({double size = 60}) => Container(
         width: size, height: size,
-        decoration: BoxDecoration(
-            color: const Color(0xFF2a2a2a), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: const Color(0xFF2a2a2a), borderRadius: BorderRadius.circular(10)),
         child: const Icon(Icons.image, color: Colors.white38, size: 28),
       );
 
@@ -533,14 +512,96 @@ class _PedidosScreenState extends State<PedidosScreen> {
           decoration: BoxDecoration(
             color: enabled ? const Color(0xFF1a1a1a) : const Color(0xFF0f0f0f),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-                color: enabled ? const Color(0xFF2a2a2a) : const Color(0xFF1a1a1a)),
+            border: Border.all(color: enabled ? const Color(0xFF2a2a2a) : const Color(0xFF1a1a1a)),
           ),
-          child: Icon(icon,
-              color: enabled ? const Color(0xFFEF4444) : Colors.white24, size: 20),
+          child: Icon(icon, color: enabled ? const Color(0xFFEF4444) : Colors.white24, size: 20),
         ),
       );
 
+  // ── FIX L458: _buildBuscador y _buildFiltros extraídos de build() ──────
+  Widget _buildBuscador() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: TextField(
+        controller: _searchController,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: 'Buscar por ID o nombre...',
+          hintStyle: const TextStyle(color: Colors.white38),
+          prefixIcon: const Icon(Icons.search, color: Colors.white38),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white38),
+                  onPressed: () => setState(() {
+                    _searchController.clear();
+                    _searchQuery = '';
+                    _currentPage = 0;
+                    _aplicarFiltro();
+                  }),
+                )
+              : null,
+          filled: true,
+          fillColor: const Color(0xFF1a1a1a),
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltrosEstado() {
+    return SizedBox(
+      height: 44,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        itemCount: _estados.length,
+        itemBuilder: (_, i) {
+          final estado   = _estados[i];
+          final selected = _filtroEstado == estado;
+          final color    = estado == 'todos'
+              ? const Color(0xFFEF4444)
+              : (_coloresEstado[estado] ?? Colors.grey);
+          return GestureDetector(
+            onTap: () => setState(() { _filtroEstado = estado; _currentPage = 0; _aplicarFiltro(); }),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+              decoration: BoxDecoration(
+                color: selected ? color.withOpacity(0.2) : const Color(0xFF1a1a1a),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: selected ? color : const Color(0xFF2a2a2a), width: selected ? 1.5 : 1),
+              ),
+              child: Text(
+                estado == 'todos' ? 'TODOS' : estado.replaceAll('_', ' ').toUpperCase(),
+                style: TextStyle(
+                    color: selected ? color : Colors.white54,
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContador() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(children: [
+        Text('${_pedidosFiltrados.length} pedido(s)',
+            style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        const Spacer(),
+        if (_totalPages > 1)
+          Text('Pág. ${_currentPage + 1} de $_totalPages',
+              style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      ]),
+    );
+  }
+
+  // ✅ FIX L458: build() simplificado
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -560,104 +621,99 @@ class _PedidosScreenState extends State<PedidosScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFFEF4444)))
           : Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Buscar por ID o nombre...',
-                    hintStyle: const TextStyle(color: Colors.white38),
-                    prefixIcon: const Icon(Icons.search, color: Colors.white38),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white38),
-                            onPressed: () => setState(() {
-                              _searchController.clear();
-                              _searchQuery = '';
-                              _currentPage = 0;
-                              _aplicarFiltro();
-                            }),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: const Color(0xFF1a1a1a),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 44,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  itemCount: _estados.length,
-                  itemBuilder: (_, i) {
-                    final estado   = _estados[i];
-                    final selected = _filtroEstado == estado;
-                    final color    = estado == 'todos'
-                        ? const Color(0xFFEF4444)
-                        : (_coloresEstado[estado] ?? Colors.grey);
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _filtroEstado = estado;
-                        _currentPage = 0;
-                        _aplicarFiltro();
-                      }),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: selected ? color.withOpacity(0.2) : const Color(0xFF1a1a1a),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: selected ? color : const Color(0xFF2a2a2a),
-                              width: selected ? 1.5 : 1),
-                        ),
-                        child: Text(
-                          estado == 'todos' ? 'TODOS' : estado.replaceAll('_', ' ').toUpperCase(),
-                          style: TextStyle(
-                              color: selected ? color : Colors.white54,
-                              fontSize: 11,
-                              fontWeight: selected ? FontWeight.bold : FontWeight.normal),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Row(children: [
-                  Text('${_pedidosFiltrados.length} pedido(s)',
-                      style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                  const Spacer(),
-                  if (_totalPages > 1)
-                    Text('Pág. ${_currentPage + 1} de $_totalPages',
-                        style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                ]),
-              ),
-              Expanded(
-                child: _pedidosFiltrados.isEmpty
-                    ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(Icons.receipt_long, size: 80, color: Colors.grey[700]),
-                        const SizedBox(height: 16),
-                        const Text('No hay pedidos',
-                            style: TextStyle(color: Colors.grey, fontSize: 16)),
-                      ]))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _pedidosPaginados.length,
-                        itemBuilder: (_, i) => _buildPedidoCard(_pedidosPaginados[i], auth),
-                      ),
-              ),
+              _buildBuscador(),
+              _buildFiltrosEstado(),
+              _buildContador(),
+              Expanded(child: _buildListaPedidos(auth)),
               _buildPaginacion(),
             ]),
     );
   }
 
+  // ✅ FIX L572/L643: ternarios anidados extraídos
+  Widget _buildListaPedidos(AuthProvider auth) {
+    if (_pedidosFiltrados.isEmpty) {
+      return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(Icons.receipt_long, size: 80, color: Colors.grey[700]),
+        const SizedBox(height: 16),
+        const Text('No hay pedidos', style: TextStyle(color: Colors.grey, fontSize: 16)),
+      ]));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: _pedidosPaginados.length,
+      itemBuilder: (_, i) => _buildPedidoCard(_pedidosPaginados[i], auth),
+    );
+  }
+
+  // ── FIX L545: _buildPedidoCard partido en sub-widgets ─────────────────
+  Widget _buildPedidoCardHeader(Pedido pedido, Color color) {
+    return Row(children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+        child: Text('#${pedido.idPedido}',
+            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+      ),
+      const SizedBox(width: 10),
+      Expanded(child: Text(
+        pedido.usuario?.nombreCompleto ?? 'Usuario #${pedido.idUsuario}',
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      )),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.4)),
+        ),
+        child: Text(pedido.estado.replaceAll('_', ' ').toUpperCase(),
+            style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+      ),
+    ]);
+  }
+
+  Widget _buildPedidoCardInfo(Pedido pedido) {
+    return Row(children: [
+      const Icon(Icons.calendar_today, color: Colors.white38, size: 13),
+      const SizedBox(width: 4),
+      Text(pedido.fechaPedido ?? 'Sin fecha',
+          style: const TextStyle(color: Colors.white54, fontSize: 12)),
+      const SizedBox(width: 16),
+      if (pedido.metodoPago != null) ...[
+        const Icon(Icons.payment, color: Colors.white38, size: 13),
+        const SizedBox(width: 4),
+        Text(pedido.metodoPago!, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+      ],
+      const Spacer(),
+      Text('\$${pedido.total.toStringAsFixed(0)}',
+          style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 15)),
+    ]);
+  }
+
+  Widget _buildPedidoCardAcciones(Pedido pedido) {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      TextButton.icon(
+        onPressed: () => _cambiarEstado(pedido),
+        icon: const Icon(Icons.edit, size: 14, color: Color(0xFFEF4444)),
+        label: const Text('Estado', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12)),
+        style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      ),
+      const SizedBox(width: 8),
+      TextButton.icon(
+        onPressed: () => _eliminarPedido(pedido),
+        icon: const Icon(Icons.delete_outline, size: 14, color: Colors.red),
+        label: const Text('Eliminar', style: TextStyle(color: Colors.red, fontSize: 12)),
+        style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      ),
+    ]);
+  }
+
+  // ✅ FIX L545: complejidad reducida extrayendo sub-widgets
   Widget _buildPedidoCard(Pedido pedido, AuthProvider auth) {
     final color = _coloresEstado[pedido.estado] ?? Colors.grey;
     return Card(
@@ -673,73 +729,12 @@ class _PedidosScreenState extends State<PedidosScreen> {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                    color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
-                child: Text('#${pedido.idPedido}',
-                    style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 10),
-              Expanded(child: Text(
-                pedido.usuario?.nombreCompleto ?? 'Usuario #${pedido.idUsuario}',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-              )),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: color.withOpacity(0.4)),
-                ),
-                child: Text(pedido.estado.replaceAll('_', ' ').toUpperCase(),
-                    style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
-              ),
-            ]),
+            _buildPedidoCardHeader(pedido, color),
             const SizedBox(height: 8),
-            Row(children: [
-              const Icon(Icons.calendar_today, color: Colors.white38, size: 13),
-              const SizedBox(width: 4),
-              Text(pedido.fechaPedido ?? 'Sin fecha',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              const SizedBox(width: 16),
-              if (pedido.metodoPago != null) ...[
-                const Icon(Icons.payment, color: Colors.white38, size: 13),
-                const SizedBox(width: 4),
-                Text(pedido.metodoPago!,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              ],
-              const Spacer(),
-              Text('\$${pedido.total.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                      color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 15)),
-            ]),
+            _buildPedidoCardInfo(pedido),
             if (auth.isSuperAdmin) ...[
               const SizedBox(height: 8),
-              Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                TextButton.icon(
-                  onPressed: () => _cambiarEstado(pedido),
-                  icon: const Icon(Icons.edit, size: 14, color: Color(0xFFEF4444)),
-                  label: const Text('Estado',
-                      style: TextStyle(color: Color(0xFFEF4444), fontSize: 12)),
-                  style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                ),
-                const SizedBox(width: 8),
-                TextButton.icon(
-                  onPressed: () => _eliminarPedido(pedido),
-                  icon: const Icon(Icons.delete_outline, size: 14, color: Colors.red),
-                  label: const Text('Eliminar',
-                      style: TextStyle(color: Colors.red, fontSize: 12)),
-                  style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                ),
-              ]),
+              _buildPedidoCardAcciones(pedido),
             ],
           ]),
         ),
