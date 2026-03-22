@@ -5,6 +5,32 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_config.dart';
 
+// ── Data class para agrupar controladores del formulario ──────────────────
+class _ProductoControllers {
+  final TextEditingController nombre  = TextEditingController();
+  final TextEditingController desc    = TextEditingController();
+  final TextEditingController precio  = TextEditingController();
+  final TextEditingController stock   = TextEditingController();
+  final TextEditingController cat     = TextEditingController();
+
+  _ProductoControllers.fromProducto(dynamic p) {
+    nombre.text = p['nombre_producto'] ?? '';
+    desc.text   = p['descripcion'] ?? '';
+    precio.text = p['precio_base'].toString();
+    stock.text  = p['stock_disponible'].toString();
+    cat.text    = p['categoria'] ?? '';
+  }
+
+  _ProductoControllers.vacio() {
+    stock.text = '0';
+  }
+
+  void dispose() {
+    nombre.dispose(); desc.dispose();
+    precio.dispose(); stock.dispose(); cat.dispose();
+  }
+}
+
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});
 
@@ -141,12 +167,12 @@ class _ProductosScreenState extends State<ProductosScreen> {
     ]);
   }
 
-  bool _validarFormulario(TextEditingController nombreCtrl, TextEditingController precioCtrl) {
-    if (nombreCtrl.text.trim().isEmpty || precioCtrl.text.trim().isEmpty) {
+  bool _validarFormulario(_ProductoControllers ctrls) {
+    if (ctrls.nombre.text.trim().isEmpty || ctrls.precio.text.trim().isEmpty) {
       _snack('Nombre y precio son obligatorios', error: true);
       return false;
     }
-    final precio = double.tryParse(precioCtrl.text.trim());
+    final precio = double.tryParse(ctrls.precio.text.trim());
     if (precio == null || precio <= 0) {
       _snack('Precio inválido', error: true);
       return false;
@@ -154,80 +180,38 @@ class _ProductosScreenState extends State<ProductosScreen> {
     return true;
   }
 
-  Map<String, dynamic> _buildBodyProducto({
-    required TextEditingController nombreCtrl,
-    required TextEditingController descCtrl,
-    required TextEditingController precioCtrl,
-    required TextEditingController stockCtrl,
-    required TextEditingController catCtrl,
-  }) {
+  Map<String, dynamic> _buildBodyProducto(_ProductoControllers ctrls) {
     return {
-      'nombre_producto': nombreCtrl.text.trim(),
-      'descripcion': descCtrl.text.trim(),
-      'precio_base': double.parse(precioCtrl.text.trim()),
-      'stock_disponible': int.tryParse(stockCtrl.text.trim()) ?? 0,
-      'categoria': catCtrl.text.trim().isEmpty ? null : catCtrl.text.trim(),
+      'nombre_producto': ctrls.nombre.text.trim(),
+      'descripcion': ctrls.desc.text.trim(),
+      'precio_base': double.parse(ctrls.precio.text.trim()),
+      'stock_disponible': int.tryParse(ctrls.stock.text.trim()) ?? 0,
+      'categoria': ctrls.cat.text.trim().isEmpty ? null : ctrls.cat.text.trim(),
     };
   }
 
-  Future<void> _abrirFormulario({dynamic producto}) async {
-    final esEdicion  = producto != null;
-    final nombreCtrl = TextEditingController(text: esEdicion ? producto['nombre_producto'] : '');
-    final descCtrl   = TextEditingController(text: esEdicion ? producto['descripcion'] ?? '' : '');
-    final precioCtrl = TextEditingController(text: esEdicion ? producto['precio_base'].toString() : '');
-    final stockCtrl  = TextEditingController(text: esEdicion ? producto['stock_disponible'].toString() : '0');
-    final catCtrl    = TextEditingController(text: esEdicion ? producto['categoria'] ?? '' : '');
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF1a1a1a),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(esEdicion ? Icons.edit : Icons.add_circle, color: _purple, size: 22),
-              const SizedBox(width: 10),
-              Text(
-                esEdicion ? 'Editar producto' : 'Nuevo producto',
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ]),
-            const SizedBox(height: 20),
-            _buildCampoFormulario('Nombre del producto *', nombreCtrl),
-            const SizedBox(height: 12),
-            _buildCampoFormulario('Descripción', descCtrl, maxLines: 3),
-            const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: _buildCampoFormulario('Precio base *', precioCtrl, tipo: TextInputType.number)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildCampoFormulario('Stock', stockCtrl, tipo: TextInputType.number)),
-            ]),
-            const SizedBox(height: 12),
-            _buildCampoFormulario('Categoría', catCtrl),
-            const SizedBox(height: 24),
-            _buildFormularioAcciones(ctx, esEdicion, producto,
-                nombreCtrl: nombreCtrl, descCtrl: descCtrl,
-                precioCtrl: precioCtrl, stockCtrl: stockCtrl, catCtrl: catCtrl),
-          ]),
-        ),
-      ),
-    );
+  Widget _buildCamposFormulario(_ProductoControllers ctrls) {
+    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _buildCampoFormulario('Nombre del producto *', ctrls.nombre),
+      const SizedBox(height: 12),
+      _buildCampoFormulario('Descripción', ctrls.desc, maxLines: 3),
+      const SizedBox(height: 12),
+      Row(children: [
+        Expanded(child: _buildCampoFormulario('Precio base *', ctrls.precio, tipo: TextInputType.number)),
+        const SizedBox(width: 12),
+        Expanded(child: _buildCampoFormulario('Stock', ctrls.stock, tipo: TextInputType.number)),
+      ]),
+      const SizedBox(height: 12),
+      _buildCampoFormulario('Categoría', ctrls.cat),
+    ]);
   }
 
   Widget _buildFormularioAcciones(
     BuildContext ctx,
     bool esEdicion,
-    dynamic producto, {
-    required TextEditingController nombreCtrl,
-    required TextEditingController descCtrl,
-    required TextEditingController precioCtrl,
-    required TextEditingController stockCtrl,
-    required TextEditingController catCtrl,
-  }) {
+    dynamic producto,
+    _ProductoControllers ctrls,
+  ) {
     return Row(children: [
       Expanded(
         child: TextButton(
@@ -251,12 +235,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
           onPressed: () async {
-            if (!_validarFormulario(nombreCtrl, precioCtrl)) return;
+            if (!_validarFormulario(ctrls)) return;
             Navigator.pop(ctx);
-            final body = _buildBodyProducto(
-              nombreCtrl: nombreCtrl, descCtrl: descCtrl,
-              precioCtrl: precioCtrl, stockCtrl: stockCtrl, catCtrl: catCtrl,
-            );
+            final body = _buildBodyProducto(ctrls);
             if (esEdicion) {
               await _actualizar(producto['id_producto'], body);
             } else {
@@ -270,6 +251,41 @@ class _ProductosScreenState extends State<ProductosScreen> {
         ),
       ),
     ]);
+  }
+
+  Future<void> _abrirFormulario({dynamic producto}) async {
+    final esEdicion = producto != null;
+    final ctrls = esEdicion
+        ? _ProductoControllers.fromProducto(producto)
+        : _ProductoControllers.vacio();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(esEdicion ? Icons.edit : Icons.add_circle, color: _purple, size: 22),
+              const SizedBox(width: 10),
+              Text(
+                esEdicion ? 'Editar producto' : 'Nuevo producto',
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ]),
+            const SizedBox(height: 20),
+            _buildCamposFormulario(ctrls),
+            const SizedBox(height: 24),
+            _buildFormularioAcciones(ctx, esEdicion, producto, ctrls),
+          ]),
+        ),
+      ),
+    );
+    ctrls.dispose();
   }
 
   Future<void> _crear(Map<String, dynamic> body) async {
@@ -415,8 +431,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
     );
   }
 
-  // ── Buscador ──────────────────────────────────────────────────────────────
-
   Widget _buildBuscador() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
@@ -446,8 +460,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
     );
   }
 
-  // ── Filtros de categoría ──────────────────────────────────────────────────
-
   int _contarCategoria(String cat) => cat == 'todas'
       ? _productos.length
       : _productos.where((p) => p['categoria'] == cat).length;
@@ -468,19 +480,15 @@ class _ProductosScreenState extends State<ProductosScreen> {
         decoration: BoxDecoration(
           color: sel ? _purple.withOpacity(0.15) : const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-              color: sel ? _purple : const Color(0xFF2a2a2a),
-              width: sel ? 1.5 : 1),
+          border: Border.all(color: sel ? _purple : const Color(0xFF2a2a2a), width: sel ? 1.5 : 1),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            cat == 'todas' ? 'Todas' : cat,
-            style: TextStyle(
-              color: sel ? _purple : Colors.white38,
-              fontSize: 12,
-              fontWeight: sel ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+          Text(cat == 'todas' ? 'Todas' : cat,
+              style: TextStyle(
+                color: sel ? _purple : Colors.white38,
+                fontSize: 12,
+                fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+              )),
           const SizedBox(width: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
@@ -548,27 +556,20 @@ class _ProductosScreenState extends State<ProductosScreen> {
     ]));
   }
 
-  // ── Card ──────────────────────────────────────────────────────────────────
-
   Widget _buildCardInfo(dynamic p, bool stockBajo) {
     final stock = p['stock_disponible'] ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: _purple.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(5),
-          ),
+          decoration: BoxDecoration(color: _purple.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
           child: Text('#${p['id_producto']}',
               style: const TextStyle(color: _purple, fontSize: 10, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(width: 8),
-        Expanded(child: Text(
-          p['nombre_producto'] ?? '-',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
-          overflow: TextOverflow.ellipsis,
-        )),
+        Expanded(child: Text(p['nombre_producto'] ?? '-',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+            overflow: TextOverflow.ellipsis)),
       ]),
       const SizedBox(height: 4),
       if (p['descripcion'] != null && p['descripcion'].toString().isNotEmpty)
@@ -586,11 +587,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Text(p['categoria'],
-              style: const TextStyle(color: Colors.white54, fontSize: 10)),
+              color: Colors.white.withOpacity(0.06), borderRadius: BorderRadius.circular(5)),
+          child: Text(p['categoria'], style: const TextStyle(color: Colors.white54, fontSize: 10)),
         ),
         const SizedBox(width: 8),
       ],
@@ -601,10 +599,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
           borderRadius: BorderRadius.circular(5),
         ),
         child: Text('Stock: $stock',
-            style: TextStyle(
-              color: stockBajo ? _red : _green,
-              fontSize: 10, fontWeight: FontWeight.bold,
-            )),
+            style: TextStyle(color: stockBajo ? _red : _green, fontSize: 10, fontWeight: FontWeight.bold)),
       ),
     ]);
   }
@@ -626,24 +621,18 @@ class _ProductosScreenState extends State<ProductosScreen> {
     final stock     = p['stock_disponible'] ?? 0;
     final precio    = double.tryParse(p['precio_base'].toString()) ?? 0;
     final stockBajo = stock <= 5;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFF1a1a1a),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: stockBajo ? _red.withOpacity(0.4) : _purple.withOpacity(0.2),
-        ),
+        border: Border.all(color: stockBajo ? _red.withOpacity(0.4) : _purple.withOpacity(0.2)),
       ),
       child: Row(children: [
         Container(
           width: 48, height: 48,
-          decoration: BoxDecoration(
-            color: _purple.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: _purple.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
           child: const Icon(Icons.inventory_2, color: _purple, size: 24),
         ),
         const SizedBox(width: 12),
@@ -666,8 +655,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
       child: Icon(icon, color: color, size: 16),
     ),
   );
-
-  // ── Paginación ────────────────────────────────────────────────────────────
 
   Widget _buildSelectorTamano() {
     return Container(

@@ -5,6 +5,32 @@ import '../../models/usuario_model.dart';
 import '../../services/usuario_service.dart';
 import '../../providers/auth_provider.dart';
 
+// ── Data class para agrupar controladores del formulario ──────────────────
+class _UsuarioControllers {
+  final TextEditingController nombre    = TextEditingController();
+  final TextEditingController apellido  = TextEditingController();
+  final TextEditingController correo    = TextEditingController();
+  final TextEditingController documento = TextEditingController();
+  final TextEditingController? clave;
+
+  _UsuarioControllers({bool conClave = false})
+      : clave = conClave ? TextEditingController() : null;
+
+  _UsuarioControllers.fromUsuario(Usuario u)
+      : clave = null {
+    nombre.text    = u.nombre;
+    apellido.text  = u.apellido;
+    correo.text    = u.email;
+    documento.text = u.documento ?? '';
+  }
+
+  void dispose() {
+    nombre.dispose(); apellido.dispose();
+    correo.dispose(); documento.dispose();
+    clave?.dispose();
+  }
+}
+
 class UsuariosScreen extends StatefulWidget {
   const UsuariosScreen({super.key});
 
@@ -166,48 +192,50 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
     }
   }
 
-  // ✅ FIX: sub-widgets para reducir complejidad de _mostrarFormularioCrear
-  Widget _buildCamposFormulario({
-    required TextEditingController nombreCtrl,
-    required TextEditingController apellidoCtrl,
-    required TextEditingController correoCtrl,
-    required TextEditingController documentoCtrl,
-    TextEditingController? claveCtrl,
-    required int rol,
-    required bool esAdminLimitado,
-    required void Function(int?) onRolChanged,
-  }) {
+  // ── Formulario helpers ────────────────────────────────────────────────────
+
+  Widget _buildCamposFormulario(_UsuarioControllers ctrls, int rol, bool esAdminLimitado, void Function(int?) onRolChanged) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      _field(nombreCtrl, 'Nombre', Icons.person,
+      _field(ctrls.nombre, 'Nombre', Icons.person,
           validator: (v) => v!.isEmpty ? 'Requerido' : null),
       const SizedBox(height: 10),
-      _field(apellidoCtrl, 'Apellido', Icons.person_outline,
+      _field(ctrls.apellido, 'Apellido', Icons.person_outline,
           validator: (v) => v!.isEmpty ? 'Requerido' : null),
       const SizedBox(height: 10),
-      _field(correoCtrl, 'Correo', Icons.email,
+      _field(ctrls.correo, 'Correo', Icons.email,
           keyboardType: TextInputType.emailAddress,
           validator: (v) => v!.isEmpty ? 'Requerido' : null),
       const SizedBox(height: 10),
-      if (claveCtrl != null) ...[
-        _field(claveCtrl, 'Contraseña', Icons.lock,
+      if (ctrls.clave != null) ...[
+        _field(ctrls.clave!, 'Contraseña', Icons.lock,
             obscure: true,
             validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null),
         const SizedBox(height: 10),
       ],
-      _field(documentoCtrl, 'Documento (opcional)', Icons.badge),
+      _field(ctrls.documento, 'Documento (opcional)', Icons.badge),
       const SizedBox(height: 10),
       _rolDropdown(rol, onRolChanged, soloCliente: esAdminLimitado),
     ]);
   }
 
-  // ✅ FIX L173: complejidad reducida extrayendo sub-widgets
+  Widget _buildAccionesDialog(BuildContext ctx, String labelGuardar, VoidCallback onGuardar) {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      TextButton(
+        onPressed: () => Navigator.pop(ctx),
+        child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+      ),
+      const SizedBox(width: 8),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: _cyan),
+        onPressed: onGuardar,
+        child: Text(labelGuardar, style: const TextStyle(color: Colors.black)),
+      ),
+    ]);
+  }
+
   Future<void> _mostrarFormularioCrear() async {
-    final nombreCtrl    = TextEditingController();
-    final apellidoCtrl  = TextEditingController();
-    final correoCtrl    = TextEditingController();
-    final claveCtrl     = TextEditingController();
-    final documentoCtrl = TextEditingController();
-    final auth          = Provider.of<AuthProvider>(context, listen: false);
+    final ctrls = _UsuarioControllers(conClave: true);
+    final auth  = Provider.of<AuthProvider>(context, listen: false);
     final esAdminLimitado = auth.isAdminLimitado;
     int rol = 2;
     final fk = GlobalKey<FormState>();
@@ -225,55 +253,38 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
               key: fk,
               child: SingleChildScrollView(
                 child: _buildCamposFormulario(
-                  nombreCtrl: nombreCtrl,
-                  apellidoCtrl: apellidoCtrl,
-                  correoCtrl: correoCtrl,
-                  documentoCtrl: documentoCtrl,
-                  claveCtrl: claveCtrl,
-                  rol: rol,
-                  esAdminLimitado: esAdminLimitado,
-                  onRolChanged: (v) => setS(() => rol = v!),
+                  ctrls, rol, esAdminLimitado,
+                  (v) => setS(() => rol = v!),
                 ),
               ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _cyan),
-              onPressed: () async {
-                if (!fk.currentState!.validate()) return;
-                Navigator.pop(ctx);
-                final r = await UsuarioService.create(
-                  token: _getToken(),
-                  nombre: nombreCtrl.text.trim(),
-                  apellido: apellidoCtrl.text.trim(),
-                  correo: correoCtrl.text.trim(),
-                  clave: claveCtrl.text.trim(),
-                  documento: documentoCtrl.text.trim().isEmpty ? null : documentoCtrl.text.trim(),
-                  idRol: rol,
-                );
-                r['success'] ? _mostrarExito(r['message'] ?? 'Creado') : _mostrarError(r['message'] ?? 'Error');
-                if (r['success']) _cargarUsuarios();
-              },
-              child: const Text('Crear', style: TextStyle(color: Colors.black)),
-            ),
+            _buildAccionesDialog(ctx, 'Crear', () async {
+              if (!fk.currentState!.validate()) return;
+              Navigator.pop(ctx);
+              final r = await UsuarioService.create(
+                token: _getToken(),
+                nombre: ctrls.nombre.text.trim(),
+                apellido: ctrls.apellido.text.trim(),
+                correo: ctrls.correo.text.trim(),
+                clave: ctrls.clave!.text.trim(),
+                documento: ctrls.documento.text.trim().isEmpty ? null : ctrls.documento.text.trim(),
+                idRol: rol,
+              );
+              r['success'] ? _mostrarExito(r['message'] ?? 'Creado') : _mostrarError(r['message'] ?? 'Error');
+              if (r['success']) _cargarUsuarios();
+            }),
           ],
         ),
       ),
     );
+    ctrls.dispose();
   }
 
-  // ✅ FIX L280: complejidad reducida extrayendo sub-widgets
   Future<void> _mostrarFormularioEditar(Usuario u) async {
-    final nombreCtrl    = TextEditingController(text: u.nombre);
-    final apellidoCtrl  = TextEditingController(text: u.apellido);
-    final correoCtrl    = TextEditingController(text: u.email);
-    final documentoCtrl = TextEditingController(text: u.documento ?? '');
-    final auth          = Provider.of<AuthProvider>(context, listen: false);
+    final ctrls = _UsuarioControllers.fromUsuario(u);
+    final auth  = Provider.of<AuthProvider>(context, listen: false);
     final esAdminLimitado = auth.isAdminLimitado;
     int rol = u.idRol;
     final fk = GlobalKey<FormState>();
@@ -291,44 +302,32 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
               key: fk,
               child: SingleChildScrollView(
                 child: _buildCamposFormulario(
-                  nombreCtrl: nombreCtrl,
-                  apellidoCtrl: apellidoCtrl,
-                  correoCtrl: correoCtrl,
-                  documentoCtrl: documentoCtrl,
-                  rol: rol,
-                  esAdminLimitado: esAdminLimitado,
-                  onRolChanged: (v) => setS(() => rol = v!),
+                  ctrls, rol, esAdminLimitado,
+                  (v) => setS(() => rol = v!),
                 ),
               ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _cyan),
-              onPressed: () async {
-                if (!fk.currentState!.validate()) return;
-                Navigator.pop(ctx);
-                final r = await UsuarioService.update(
-                  u.idUsuario!, token: _getToken(),
-                  nombre: nombreCtrl.text.trim(),
-                  apellido: apellidoCtrl.text.trim(),
-                  correo: correoCtrl.text.trim(),
-                  documento: documentoCtrl.text.trim().isEmpty ? null : documentoCtrl.text.trim(),
-                  idRol: rol,
-                );
-                r['success'] ? _mostrarExito(r['message'] ?? 'Actualizado') : _mostrarError(r['message'] ?? 'Error');
-                if (r['success']) _cargarUsuarios();
-              },
-              child: const Text('Guardar', style: TextStyle(color: Colors.black)),
-            ),
+            _buildAccionesDialog(ctx, 'Guardar', () async {
+              if (!fk.currentState!.validate()) return;
+              Navigator.pop(ctx);
+              final r = await UsuarioService.update(
+                u.idUsuario!, token: _getToken(),
+                nombre: ctrls.nombre.text.trim(),
+                apellido: ctrls.apellido.text.trim(),
+                correo: ctrls.correo.text.trim(),
+                documento: ctrls.documento.text.trim().isEmpty ? null : ctrls.documento.text.trim(),
+                idRol: rol,
+              );
+              r['success'] ? _mostrarExito(r['message'] ?? 'Actualizado') : _mostrarError(r['message'] ?? 'Error');
+              if (r['success']) _cargarUsuarios();
+            }),
           ],
         ),
       ),
     );
+    ctrls.dispose();
   }
 
   Widget _field(TextEditingController ctrl, String label, IconData icon,
@@ -394,6 +393,8 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
         backgroundColor: _green, behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))));
   }
+
+  // ── Scaffold ──────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -546,100 +547,112 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(children: [
-          CircleAvatar(
-            backgroundColor: activo ? _cyan : Colors.grey[700],
-            radius: 22,
-            child: Text(
-              '${u.nombre.isNotEmpty ? u.nombre[0] : "?"}${u.apellido.isNotEmpty ? u.apellido[0] : "?"}'.toUpperCase(),
-              style: TextStyle(color: activo ? Colors.black : Colors.white,
-                  fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-          ),
+          _buildAvatar(u, activo),
           const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: _purple.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: _purple.withOpacity(0.4)),
-                ),
-                child: Text('#${u.idUsuario}',
-                    style: const TextStyle(color: _purple, fontSize: 11, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Text('${u.nombre} ${u.apellido}',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                  overflow: TextOverflow.ellipsis)),
-            ]),
-            const SizedBox(height: 3),
-            Row(children: [
-              const Icon(Icons.email_outlined, size: 12, color: Colors.grey),
-              const SizedBox(width: 4),
-              Expanded(child: Text(u.email,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  overflow: TextOverflow.ellipsis)),
-            ]),
-            if (u.documento != null && u.documento!.isNotEmpty) ...[
-              const SizedBox(height: 3),
-              Row(children: [
-                const Icon(Icons.badge_outlined, size: 12, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(u.documento!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              ]),
-            ],
-            const SizedBox(height: 4),
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: _pink.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(u.nombreRol ?? (u.idRol == 1 ? 'Admin' : 'Usuario'),
-                    style: const TextStyle(color: _pink, fontSize: 11)),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: activo ? _green.withOpacity(0.2) : _pink.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(activo ? 'Activo' : 'Inactivo',
-                    style: TextStyle(
-                        color: activo ? _green : _pink,
-                        fontSize: 11, fontWeight: FontWeight.bold)),
-              ),
-            ]),
-          ])),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            color: const Color(0xFF2a2a2a),
-            onSelected: (v) {
-              if (v == 'editar')   _mostrarFormularioEditar(u);
-              if (v == 'toggle')   _toggleEstado(u);
-              if (v == 'eliminar') _eliminarUsuario(u);
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'editar',
-                  child: Row(children: [Icon(Icons.edit, color: _cyan), SizedBox(width: 8),
-                      Text('Editar', style: TextStyle(color: Colors.white))])),
-              PopupMenuItem(value: 'toggle',
-                  child: Row(children: [
-                    Icon(activo ? Icons.block : Icons.check_circle, color: _pink),
-                    const SizedBox(width: 8),
-                    Text(activo ? 'Desactivar' : 'Activar', style: const TextStyle(color: Colors.white)),
-                  ])),
-              if (auth.isSuperAdmin)
-                const PopupMenuItem(value: 'eliminar',
-                    child: Row(children: [Icon(Icons.delete, color: _pink), SizedBox(width: 8),
-                        Text('Eliminar', style: TextStyle(color: Colors.white))])),
-            ],
-          ),
+          Expanded(child: _buildCardInfo(u, activo)),
+          _buildCardMenu(u, activo, auth),
         ]),
       ),
+    );
+  }
+
+  Widget _buildAvatar(Usuario u, bool activo) {
+    return CircleAvatar(
+      backgroundColor: activo ? _cyan : Colors.grey[700],
+      radius: 22,
+      child: Text(
+        '${u.nombre.isNotEmpty ? u.nombre[0] : "?"}${u.apellido.isNotEmpty ? u.apellido[0] : "?"}'.toUpperCase(),
+        style: TextStyle(color: activo ? Colors.black : Colors.white,
+            fontWeight: FontWeight.bold, fontSize: 15),
+      ),
+    );
+  }
+
+  Widget _buildCardInfo(Usuario u, bool activo) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          decoration: BoxDecoration(
+            color: _purple.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: _purple.withOpacity(0.4)),
+          ),
+          child: Text('#${u.idUsuario}',
+              style: const TextStyle(color: _purple, fontSize: 11, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text('${u.nombre} ${u.apellido}',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+            overflow: TextOverflow.ellipsis)),
+      ]),
+      const SizedBox(height: 3),
+      Row(children: [
+        const Icon(Icons.email_outlined, size: 12, color: Colors.grey),
+        const SizedBox(width: 4),
+        Expanded(child: Text(u.email,
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            overflow: TextOverflow.ellipsis)),
+      ]),
+      if (u.documento != null && u.documento!.isNotEmpty) ...[
+        const SizedBox(height: 3),
+        Row(children: [
+          const Icon(Icons.badge_outlined, size: 12, color: Colors.grey),
+          const SizedBox(width: 4),
+          Text(u.documento!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        ]),
+      ],
+      const SizedBox(height: 4),
+      Row(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          decoration: BoxDecoration(
+            color: _pink.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(u.nombreRol ?? (u.idRol == 1 ? 'Admin' : 'Usuario'),
+              style: const TextStyle(color: _pink, fontSize: 11)),
+        ),
+        const SizedBox(width: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          decoration: BoxDecoration(
+            color: activo ? _green.withOpacity(0.2) : _pink.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(activo ? 'Activo' : 'Inactivo',
+              style: TextStyle(
+                  color: activo ? _green : _pink,
+                  fontSize: 11, fontWeight: FontWeight.bold)),
+        ),
+      ]),
+    ]);
+  }
+
+  Widget _buildCardMenu(Usuario u, bool activo, AuthProvider auth) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, color: Colors.white),
+      color: const Color(0xFF2a2a2a),
+      onSelected: (v) {
+        if (v == 'editar')   _mostrarFormularioEditar(u);
+        if (v == 'toggle')   _toggleEstado(u);
+        if (v == 'eliminar') _eliminarUsuario(u);
+      },
+      itemBuilder: (_) => [
+        const PopupMenuItem(value: 'editar',
+            child: Row(children: [Icon(Icons.edit, color: _cyan), SizedBox(width: 8),
+                Text('Editar', style: TextStyle(color: Colors.white))])),
+        PopupMenuItem(value: 'toggle',
+            child: Row(children: [
+              Icon(activo ? Icons.block : Icons.check_circle, color: _pink),
+              const SizedBox(width: 8),
+              Text(activo ? 'Desactivar' : 'Activar', style: const TextStyle(color: Colors.white)),
+            ])),
+        if (auth.isSuperAdmin)
+          const PopupMenuItem(value: 'eliminar',
+              child: Row(children: [Icon(Icons.delete, color: _pink), SizedBox(width: 8),
+                  Text('Eliminar', style: TextStyle(color: Colors.white))])),
+      ],
     );
   }
 }
