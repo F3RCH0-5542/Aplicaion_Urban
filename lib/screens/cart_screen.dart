@@ -551,7 +551,7 @@ class _CartScreenState extends State<CartScreen> {
         const SizedBox(height: 16),
 
         DropdownButtonFormField<String>(
-          value: _metodoPago
+          value: _metodoPago,
           dropdownColor: const Color(0xFF2a2a2a),
           style: const TextStyle(color: Colors.white, fontSize: 16),
           decoration: InputDecoration(
