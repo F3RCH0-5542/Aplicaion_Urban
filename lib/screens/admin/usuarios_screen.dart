@@ -16,8 +16,7 @@ class _UsuarioControllers {
   _UsuarioControllers({bool conClave = false})
       : clave = conClave ? TextEditingController() : null;
 
-  _UsuarioControllers.fromUsuario(Usuario u)
-      : clave = null {
+  _UsuarioControllers.fromUsuario(Usuario u) : clave = null {
     nombre.text    = u.nombre;
     apellido.text  = u.apellido;
     correo.text    = u.email;
@@ -194,7 +193,12 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
 
   // ── Formulario helpers ────────────────────────────────────────────────────
 
-  Widget _buildCamposFormulario(_UsuarioControllers ctrls, int rol, bool esAdminLimitado, void Function(int?) onRolChanged) {
+  Widget _buildCamposFormulario(
+    _UsuarioControllers ctrls,
+    int rol,
+    bool esAdminLimitado,
+    void Function(int?) onRolChanged,
+  ) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _field(ctrls.nombre, 'Nombre', Icons.person,
           validator: (v) => v!.isEmpty ? 'Requerido' : null),
@@ -233,6 +237,63 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
     ]);
   }
 
+  // ── Lógica de guardado extraída para bajar complejidad ───────────────────
+
+  Future<void> _guardarCrear(
+    GlobalKey<FormState> fk,
+    _UsuarioControllers ctrls,
+    int rol,
+    BuildContext ctx,
+  ) async {
+    if (!fk.currentState!.validate()) return;
+    Navigator.pop(ctx);
+    final documento = ctrls.documento.text.trim().isEmpty
+        ? null
+        : ctrls.documento.text.trim();
+    final r = await UsuarioService.create(
+      token:     _getToken(),
+      nombre:    ctrls.nombre.text.trim(),
+      apellido:  ctrls.apellido.text.trim(),
+      correo:    ctrls.correo.text.trim(),
+      clave:     ctrls.clave!.text.trim(),
+      documento: documento,
+      idRol:     rol,
+    );
+    r['success']
+        ? _mostrarExito(r['message'] ?? 'Creado')
+        : _mostrarError(r['message'] ?? 'Error');
+    if (r['success']) _cargarUsuarios();
+  }
+
+  Future<void> _guardarEditar(
+    GlobalKey<FormState> fk,
+    _UsuarioControllers ctrls,
+    int rol,
+    Usuario u,
+    BuildContext ctx,
+  ) async {
+    if (!fk.currentState!.validate()) return;
+    Navigator.pop(ctx);
+    final documento = ctrls.documento.text.trim().isEmpty
+        ? null
+        : ctrls.documento.text.trim();
+    final r = await UsuarioService.update(
+      u.idUsuario!,
+      token:     _getToken(),
+      nombre:    ctrls.nombre.text.trim(),
+      apellido:  ctrls.apellido.text.trim(),
+      correo:    ctrls.correo.text.trim(),
+      documento: documento,
+      idRol:     rol,
+    );
+    r['success']
+        ? _mostrarExito(r['message'] ?? 'Actualizado')
+        : _mostrarError(r['message'] ?? 'Error');
+    if (r['success']) _cargarUsuarios();
+  }
+
+  // ── Formularios ───────────────────────────────────────────────────────────
+
   Future<void> _mostrarFormularioCrear() async {
     final ctrls = _UsuarioControllers(conClave: true);
     final auth  = Provider.of<AuthProvider>(context, listen: false);
@@ -260,21 +321,8 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
             ),
           ),
           actions: [
-            _buildAccionesDialog(ctx, 'Crear', () async {
-              if (!fk.currentState!.validate()) return;
-              Navigator.pop(ctx);
-              final r = await UsuarioService.create(
-                token: _getToken(),
-                nombre: ctrls.nombre.text.trim(),
-                apellido: ctrls.apellido.text.trim(),
-                correo: ctrls.correo.text.trim(),
-                clave: ctrls.clave!.text.trim(),
-                documento: ctrls.documento.text.trim().isEmpty ? null : ctrls.documento.text.trim(),
-                idRol: rol,
-              );
-              r['success'] ? _mostrarExito(r['message'] ?? 'Creado') : _mostrarError(r['message'] ?? 'Error');
-              if (r['success']) _cargarUsuarios();
-            }),
+            _buildAccionesDialog(ctx, 'Crear',
+                () => _guardarCrear(fk, ctrls, rol, ctx)),
           ],
         ),
       ),
@@ -309,20 +357,8 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
             ),
           ),
           actions: [
-            _buildAccionesDialog(ctx, 'Guardar', () async {
-              if (!fk.currentState!.validate()) return;
-              Navigator.pop(ctx);
-              final r = await UsuarioService.update(
-                u.idUsuario!, token: _getToken(),
-                nombre: ctrls.nombre.text.trim(),
-                apellido: ctrls.apellido.text.trim(),
-                correo: ctrls.correo.text.trim(),
-                documento: ctrls.documento.text.trim().isEmpty ? null : ctrls.documento.text.trim(),
-                idRol: rol,
-              );
-              r['success'] ? _mostrarExito(r['message'] ?? 'Actualizado') : _mostrarError(r['message'] ?? 'Error');
-              if (r['success']) _cargarUsuarios();
-            }),
+            _buildAccionesDialog(ctx, 'Guardar',
+                () => _guardarEditar(fk, ctrls, rol, u, ctx)),
           ],
         ),
       ),
