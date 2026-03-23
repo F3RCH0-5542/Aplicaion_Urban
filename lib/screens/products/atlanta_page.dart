@@ -11,69 +11,75 @@ class AtlantaPage extends StatefulWidget {
 }
 
 class _AtlantaPageState extends State<AtlantaPage> {
+  // ── Constantes para literales duplicados ──────────────────────────────────
+  static const _descLogotipo    = 'Gorra con logotipo bordado y diseño premium.';
+  static const _descDetalles    = 'Modelo clásico con detalles bordados oficiales.';
+  static const _descNbaClassic  = 'Gorra New Era de la colección NBA Classic.';
+  static const _teamName        = 'Atlanta Braves';
+
   final List<Map<String, dynamic>> productos = [
     {
       'id': 74,
-      'nombre': 'Atlanta Braves Classic Fit',
+      'nombre': '$_teamName Classic Fit',
       'precio': 95000,
       'imagen': 'assets/img/Braves/1-removebg-preview.png',
       'desc': 'Gorra New Era 59FIFTY de la colección NBA Classic.'
     },
     {
       'id': 75,
-      'nombre': 'Atlanta Braves Heritage Line',
+      'nombre': '$_teamName Heritage Line',
       'precio': 92000,
       'imagen': 'assets/img/Braves/2-removebg-preview.png',
-      'desc': 'Gorra con logotipo bordado y diseño premium.'
+      'desc': _descLogotipo,
     },
     {
       'id': 76,
-      'nombre': 'Atlanta Braves Night Game',
+      'nombre': '$_teamName Night Game',
       'precio': 98000,
       'imagen': 'assets/img/Braves/3-removebg-preview.png',
-      'desc': 'Modelo clásico con detalles bordados oficiales.'
+      'desc': _descDetalles,
     },
     {
       'id': 77,
-      'nombre': 'Atlanta Braves Retro Swing',
+      'nombre': '$_teamName Retro Swing',
       'precio': 95000,
       'imagen': 'assets/img/Braves/4-removebg-preview.png',
       'desc': 'Gorra New Era multi color.'
     },
     {
       'id': 78,
-      'nombre': 'Atlanta Braves Southern Pride',
+      'nombre': '$_teamName Southern Pride',
       'precio': 92000,
       'imagen': 'assets/img/Braves/5-removebg-preview.png',
-      'desc': 'Gorra con logotipo bordado y diseño premium.'
+      'desc': _descLogotipo,
     },
     {
       'id': 79,
-      'nombre': 'Atlanta Braves Bold Edition',
+      'nombre': '$_teamName Bold Edition',
       'precio': 98000,
       'imagen': 'assets/img/Braves/6-removebg-preview.png',
-      'desc': 'Modelo clásico con detalles bordados oficiales.'
+      'desc': _descDetalles,
     },
     {
       'id': 80,
-      'nombre': 'Atlanta Braves Street Style',
+      'nombre': '$_teamName Street Style',
       'precio': 95000,
       'imagen': 'assets/img/Braves/7-removebg-preview.png',
-      'desc': 'Gorra New Era de la colección NBA Classic.'
+      'desc': _descNbaClassic,
     },
     {
       'id': 81,
-      'nombre': 'Atlanta Braves Home Field',
+      'nombre': '$_teamName Home Field',
       'precio': 92000,
       'imagen': 'assets/img/Braves/8-removebg-preview.png',
-      'desc': 'Gorra con logotipo bordado y diseño premium.'
+      'desc': _descLogotipo,
     },
     {
       'id': 82,
-      'nombre': 'Atlanta Braves Legacy Cap',
+      'nombre': '$_teamName Legacy Cap',
       'precio': 98000,
       'imagen': 'assets/img/Braves/9-removebg-preview.png',
-      'desc': 'Modelo clásico con detalles bordados oficiales.'
+      'desc': _descDetalles,
     },
   ];
 
@@ -164,7 +170,7 @@ class _AtlantaPageState extends State<AtlantaPage> {
         _buildNavMenu('MLB', [
           _buildNavMenuItem('Boston Red Sox', '/red'),
           _buildNavMenuItem('Chicago White Sox', '/white'),
-          _buildNavMenuItem('Atlanta Braves', '/atlanta')
+          _buildNavMenuItem(_teamName, '/atlanta')
         ]),
         const SizedBox(width: 8),
         _buildNavButton('Personalizadas',
@@ -323,10 +329,7 @@ class _AtlantaPageState extends State<AtlantaPage> {
                   gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                    Color(0xFF667eea),
-                    Color(0xFF764ba2)
-                  ])),
+                      colors: [Color(0xFF667eea), Color(0xFF764ba2)])),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -343,40 +346,31 @@ class _AtlantaPageState extends State<AtlantaPage> {
                     Text(
                         authProvider.isLoggedIn
                             ? 'Hola, ${authProvider.userFullName}'
-                            : 'Atlanta Braves Collection',
+                            : '$_teamName Collection',
                         style: const TextStyle(
                             color: Colors.white70, fontSize: 14))
                   ])),
           _buildDrawerSection('NBA', [
-            _buildDrawerItem(
-                'Chicago Bulls', Icons.sports_basketball, '/chicago'),
-            _buildDrawerItem(
-                'Boston Celtics', Icons.sports_basketball, '/boston'),
-            _buildDrawerItem(
-                'Los Angeles Lakers', Icons.sports_basketball, '/lakers')
+            _buildDrawerItem('Chicago Bulls', Icons.sports_basketball, '/chicago'),
+            _buildDrawerItem('Boston Celtics', Icons.sports_basketball, '/boston'),
+            _buildDrawerItem('Los Angeles Lakers', Icons.sports_basketball, '/lakers')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           _buildDrawerSection('NFL', [
-            _buildDrawerItem(
-                'Atlanta Falcons', Icons.sports_football, '/falcon'),
-            _buildDrawerItem(
-                'Arizona Cardinals', Icons.sports_football, '/arizona'),
-            _buildDrawerItem(
-                'Las Vegas Raiders', Icons.sports_football, '/vegas')
+            _buildDrawerItem('Atlanta Falcons', Icons.sports_football, '/falcon'),
+            _buildDrawerItem('Arizona Cardinals', Icons.sports_football, '/arizona'),
+            _buildDrawerItem('Las Vegas Raiders', Icons.sports_football, '/vegas')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           _buildDrawerSection('MLB', [
             _buildDrawerItem('Boston Red Sox', Icons.sports_baseball, '/red'),
-            _buildDrawerItem(
-                'Chicago White Sox', Icons.sports_baseball, '/white'),
-            _buildDrawerItem(
-                'Atlanta Braves', Icons.sports_baseball, '/atlanta')
+            _buildDrawerItem('Chicago White Sox', Icons.sports_baseball, '/white'),
+            _buildDrawerItem(_teamName, Icons.sports_baseball, '/atlanta')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           ListTile(
             leading: const Icon(Icons.palette, color: Color(0xFFFF6B9D)),
-            title: const Text('Personalizadas',
-                style: TextStyle(color: Colors.white)),
+            title: const Text('Personalizadas', style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, '/personalizadas');
@@ -389,7 +383,7 @@ class _AtlantaPageState extends State<AtlantaPage> {
               Navigator.pop(context);
               Navigator.pushNamed(context, '/pqrs');
             },
-          ), // ListTile
+          ),
           const Divider(color: Color(0xFF2a2a2a)),
           if (authProvider.isLoggedIn) ...[
             if (authProvider.isAdmin)
@@ -447,14 +441,14 @@ class _AtlantaPageState extends State<AtlantaPage> {
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 20),
       child: Column(
         children: [
-          Text('Atlanta Braves',
+          Text(_teamName,
               style: TextStyle(
                   fontSize: isMobile ? 28 : 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white)),
           const SizedBox(height: 8),
           Text(
-              'Los Atlanta Braves son un equipo de béisbol profesional con sede en Atlanta, Georgia. Fundado en 1871, es uno de los equipos más antiguos de las Grandes Ligas. Con una rica historia y múltiples campeonatos, los Braves son símbolo de orgullo para su ciudad y tienen una gran base de fanáticos.',
+              'Los $_teamName son un equipo de béisbol profesional con sede en Atlanta, Georgia. Fundado en 1871, es uno de los equipos más antiguos de las Grandes Ligas. Con una rica historia y múltiples campeonatos, los Braves son símbolo de orgullo para su ciudad y tienen una gran base de fanáticos.',
               style: TextStyle(fontSize: 16, color: Colors.grey[400]),
               textAlign: TextAlign.center),
           const SizedBox(height: 24),
@@ -597,8 +591,7 @@ class _AtlantaPageState extends State<AtlantaPage> {
             color: const Color(0xFF1a1a1a),
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFF2a2a2a))),
-        child: IconButton(
-            onPressed: () {}, icon: Icon(icon, color: Colors.white)));
+        child: IconButton(onPressed: () {}, icon: Icon(icon, color: Colors.white)));
   }
 
   Widget _buildNavMenu(String title, List<PopupMenuEntry<String>> items) {
