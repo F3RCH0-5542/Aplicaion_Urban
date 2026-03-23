@@ -12,30 +12,34 @@ class PqrsPage extends StatefulWidget {
 }
 
 class _PqrsPageState extends State<PqrsPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nombreController = TextEditingController();
-  final _correoController = TextEditingController();
+  final _formKey             = GlobalKey<FormState>();
+  final _nombreController    = TextEditingController();
+  final _correoController    = TextEditingController();
   final _descripcionController = TextEditingController();
 
   String _tipoPqrsSeleccionado = 'Queja';
-  bool _isLoading = false;
+  bool   _isLoading = false;
 
   final List<String> _tiposPqrs = ['Queja', 'Petición', 'Reclamo', 'Sugerencia'];
+
+  // ✅ Iconos como constante para evitar instanciarlos en cada build
+  static const Map<String, IconData> _tipoIconos = {
+    'Queja':      Icons.report_problem,
+    'Petición':   Icons.request_page,
+    'Reclamo':    Icons.gavel,
+    'Sugerencia': Icons.lightbulb,
+  };
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-
-      // ── DEBUG ──────────────────────────────────────────────────────────
       debugPrint('🔍 [PQRS] isLoggedIn: ${auth.isLoggedIn}');
       debugPrint('🔍 [PQRS] userId: ${auth.userId}');
       debugPrint('🔍 [PQRS] userFullName: ${auth.userFullName}');
       debugPrint('🔍 [PQRS] userEmail: ${auth.userEmail}');
       debugPrint('🔍 [PQRS] userData: ${auth.userData}');
-      // ──────────────────────────────────────────────────────────────────
-
       if (auth.isLoggedIn) {
         _nombreController.text = auth.userFullName;
         _correoController.text = auth.userEmail;
@@ -53,39 +57,28 @@ class _PqrsPageState extends State<PqrsPage> {
 
   Future<void> _enviarPqrs() async {
     if (!_formKey.currentState!.validate()) return;
-
     final auth = Provider.of<AuthProvider>(context, listen: false);
-
-    // ── DEBUG ──────────────────────────────────────────────────────────
     debugPrint('🚀 [PQRS] Intentando enviar PQRS...');
     debugPrint('🔍 [PQRS] isLoggedIn: ${auth.isLoggedIn}');
     debugPrint('🔍 [PQRS] userId al enviar: ${auth.userId}');
     debugPrint('🔍 [PQRS] userData al enviar: ${auth.userData}');
-    // ──────────────────────────────────────────────────────────────────
-
-    // Bloquear si no está logueado
     if (!auth.isLoggedIn) {
       _mostrarError('Debes iniciar sesión para enviar una PQRS');
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       final idUsuario = auth.userId;
       debugPrint('📤 [PQRS] Enviando con id_usuario: $idUsuario');
-
       final resultado = await PqrsService.crearPqrs(
-        nombre: _nombreController.text.trim(),
-        correo: _correoController.text.trim(),
-        tipoPqrs: _tipoPqrsSeleccionado,
+        nombre:      _nombreController.text.trim(),
+        correo:      _correoController.text.trim(),
+        tipoPqrs:    _tipoPqrsSeleccionado,
         descripcion: _descripcionController.text.trim(),
-        idUsuario: idUsuario,
+        idUsuario:   idUsuario,
       );
-
       setState(() => _isLoading = false);
-
-      if (resultado['success']) {
+      if (resultado['success'] == true) {
         debugPrint('✅ [PQRS] Creada exitosamente: ${resultado['data']}');
         _mostrarDialogoExito();
         _limpiarFormulario();
@@ -115,13 +108,11 @@ class _PqrsPageState extends State<PqrsPage> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1a1a1a),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Color(0xFF10b981), size: 32),
-            SizedBox(width: 12),
-            Text('¡Enviado!', style: TextStyle(color: Colors.white)),
-          ],
-        ),
+        title: const Row(children: [
+          Icon(Icons.check_circle, color: Color(0xFF10b981), size: 32),
+          SizedBox(width: 12),
+          Text('¡Enviado!', style: TextStyle(color: Colors.white)),
+        ]),
         content: const Text(
           'Tu solicitud ha sido recibida exitosamente. Te responderemos pronto al correo proporcionado.',
           style: TextStyle(color: Colors.white70),
@@ -137,14 +128,12 @@ class _PqrsPageState extends State<PqrsPage> {
   }
 
   void _mostrarError(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('❌ $mensaje'),
-        backgroundColor: const Color(0xFFef4444),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('❌ $mensaje'),
+      backgroundColor: const Color(0xFFef4444),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ));
   }
 
   @override
@@ -152,7 +141,6 @@ class _PqrsPageState extends State<PqrsPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 800;
     final auth = Provider.of<AuthProvider>(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
@@ -174,31 +162,7 @@ class _PqrsPageState extends State<PqrsPage> {
               children: [
                 _buildHeader(),
                 const SizedBox(height: 16),
-
-                // Banner si NO está logueado
-                if (!auth.isLoggedIn)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF7c3aed).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF7c3aed).withOpacity(0.4)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.lock_outline, color: Color(0xFF7c3aed), size: 20),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Debes iniciar sesión para enviar una PQRS.',
-                            style: TextStyle(color: Color(0xFFc4b5fd), fontSize: 13),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
+                if (!auth.isLoggedIn) _buildBannerNoLogueado(),
                 const SizedBox(height: 16),
                 _buildFormulario(isMobile, auth.isLoggedIn),
               ],
@@ -209,6 +173,29 @@ class _PqrsPageState extends State<PqrsPage> {
     );
   }
 
+  // ✅ Extraído para reducir complejidad de build (SonarQube)
+  Widget _buildBannerNoLogueado() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF7c3aed).withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF7c3aed).withOpacity(0.4)),
+      ),
+      child: const Row(children: [
+        Icon(Icons.lock_outline, color: Color(0xFF7c3aed), size: 20),
+        SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'Debes iniciar sesión para enviar una PQRS.',
+            style: TextStyle(color: Color(0xFFc4b5fd), fontSize: 13),
+          ),
+        ),
+      ]),
+    );
+  }
+
   Widget _buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,37 +203,23 @@ class _PqrsPageState extends State<PqrsPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-            ),
+            gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Row(
-            children: [
-              Icon(Icons.support_agent, color: Colors.white, size: 40),
-              SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Centro de Atención',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Peticiones, Quejas, Reclamos y Sugerencias',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          child: const Row(children: [
+            Icon(Icons.support_agent, color: Colors.white, size: 40),
+            SizedBox(width: 16),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Centro de Atención',
+                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                SizedBox(height: 4),
+                Text('Peticiones, Quejas, Reclamos y Sugerencias',
+                    style: TextStyle(color: Colors.white70, fontSize: 14)),
+              ],
+            )),
+          ]),
         ),
         const SizedBox(height: 16),
         Text(
@@ -257,6 +230,7 @@ class _PqrsPageState extends State<PqrsPage> {
     );
   }
 
+  // ✅ Complejidad cognitiva reducida extrayendo _buildBotonEnviar y _buildBannerNoLogueado
   Widget _buildFormulario(bool isMobile, bool isLoggedIn) {
     return Form(
       key: _formKey,
@@ -264,10 +238,8 @@ class _PqrsPageState extends State<PqrsPage> {
         padding: EdgeInsets.all(isMobile ? 20 : 32),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1a1a1a), Color(0xFF0f0f0f)],
-          ),
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Color(0xFF1a1a1a), Color(0xFF0f0f0f)]),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFF2a2a2a)),
         ),
@@ -279,12 +251,7 @@ class _PqrsPageState extends State<PqrsPage> {
               label: 'Nombre completo',
               icon: Icons.person,
               readOnly: isLoggedIn,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Por favor ingresa tu nombre';
-                }
-                return null;
-              },
+              validator: _validarNombre,
             ),
             const SizedBox(height: 20),
             _buildCampoTexto(
@@ -293,15 +260,7 @@ class _PqrsPageState extends State<PqrsPage> {
               icon: Icons.email,
               keyboardType: TextInputType.emailAddress,
               readOnly: isLoggedIn,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Por favor ingresa tu correo';
-                }
-                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                  return 'Correo inválido';
-                }
-                return null;
-              },
+              validator: _validarCorreo,
             ),
             const SizedBox(height: 20),
             _buildSelectorTipo(),
@@ -311,45 +270,52 @@ class _PqrsPageState extends State<PqrsPage> {
               label: 'Descripción detallada',
               icon: Icons.description,
               maxLines: 6,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Por favor describe tu caso';
-                }
-                if (value.trim().length < 20) {
-                  return 'La descripción debe tener al menos 20 caracteres';
-                }
-                return null;
-              },
+              validator: _validarDescripcion,
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: (_isLoading || !isLoggedIn) ? null : _enviarPqrs,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF667eea),
-                  disabledBackgroundColor: const Color(0xFF667eea).withOpacity(0.3),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : Text(
-                        isLoggedIn ? 'Enviar Solicitud' : 'Inicia sesión para enviar',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
-            ),
+            _buildBotonEnviar(isLoggedIn),
           ],
         ),
+      ),
+    );
+  }
+
+  // ✅ Validadores extraídos como métodos independientes (reducen complejidad cognitiva)
+  String? _validarNombre(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Por favor ingresa tu nombre';
+    return null;
+  }
+
+  String? _validarCorreo(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Por favor ingresa tu correo';
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Correo inválido';
+    return null;
+  }
+
+  String? _validarDescripcion(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Por favor describe tu caso';
+    if (value.trim().length < 20) return 'La descripción debe tener al menos 20 caracteres';
+    return null;
+  }
+
+  // ✅ Botón extraído para reducir complejidad de _buildFormulario
+  Widget _buildBotonEnviar(bool isLoggedIn) {
+    final label = isLoggedIn ? 'Enviar Solicitud' : 'Inicia sesión para enviar';
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: (_isLoading || !isLoggedIn) ? null : _enviarPqrs,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF667eea),
+          disabledBackgroundColor: const Color(0xFF667eea).withOpacity(0.3),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: _isLoading
+            ? const SizedBox(width: 24, height: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : Text(label,
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -366,8 +332,7 @@ class _PqrsPageState extends State<PqrsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(label, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -381,21 +346,17 @@ class _PqrsPageState extends State<PqrsPage> {
             fillColor: readOnly ? const Color(0xFF111111) : const Color(0xFF0a0a0a),
             prefixIcon: Icon(icon, color: const Color(0xFF667eea)),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2a2a2a)),
-            ),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFF2a2a2a))),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF2a2a2a)),
-            ),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFF2a2a2a))),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-            ),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2)),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFef4444)),
-            ),
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFef4444))),
             hintStyle: const TextStyle(color: Colors.grey),
           ),
         ),
@@ -425,21 +386,13 @@ class _PqrsPageState extends State<PqrsPage> {
               icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF667eea)),
               style: const TextStyle(color: Colors.white, fontSize: 16),
               items: _tiposPqrs.map((tipo) {
-                final iconos = {
-                  'Queja': Icons.report_problem,
-                  'Petición': Icons.request_page,
-                  'Reclamo': Icons.gavel,
-                  'Sugerencia': Icons.lightbulb,
-                };
                 return DropdownMenuItem<String>(
                   value: tipo,
-                  child: Row(
-                    children: [
-                      Icon(iconos[tipo] ?? Icons.help, color: const Color(0xFF667eea), size: 20),
-                      const SizedBox(width: 12),
-                      Text(tipo),
-                    ],
-                  ),
+                  child: Row(children: [
+                    Icon(_tipoIconos[tipo] ?? Icons.help, color: const Color(0xFF667eea), size: 20),
+                    const SizedBox(width: 12),
+                    Text(tipo),
+                  ]),
                 );
               }).toList(),
               onChanged: (value) {
