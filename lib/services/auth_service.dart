@@ -7,6 +7,21 @@ import 'package:flutter/foundation.dart';
 class AuthService {
   static const String baseUrl = 'http://localhost:3001/api';
 
+  // ✅ Constantes para evitar literales duplicados (SonarQube)
+  static const String _contentTypeKey   = 'Content-Type';
+  static const String _contentTypeJson  = 'application/json';
+  static const String _authKey          = 'Authorization';
+  static const String _noSessionMsg     = 'No hay sesión activa';
+
+  static Map<String, String> get _jsonHeaders => {
+    _contentTypeKey: _contentTypeJson,
+  };
+
+  static Map<String, String> _authHeaders(String token) => {
+    _contentTypeKey: _contentTypeJson,
+    _authKey: 'Bearer $token',
+  };
+
   /// Login del usuario
   static Future<Map<String, dynamic>> login(String correo, String clave) async {
     try {
@@ -14,7 +29,7 @@ class AuthService {
 
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _jsonHeaders,
         body: json.encode({'correo': correo.trim(), 'clave': clave}),
       );
 
@@ -23,12 +38,12 @@ class AuthService {
 
       if (response.statusCode == 200) {
         await _saveUserSession(
-          token: data['token'],
-          userId: data['id_usuario'],
-          nombre: data['nombre'],
+          token:    data['token'],
+          userId:   data['id_usuario'],
+          nombre:   data['nombre'],
           apellido: data['apellido'],
-          correo: correo,
-          rol: data['id_rol'],
+          correo:   correo,
+          rol:      data['id_rol'],
         );
         debugPrint('✅ [AUTH] Login exitoso. userId guardado: ${data['id_usuario']}');
         return {'success': true, 'message': 'Login exitoso', 'data': data};
@@ -52,14 +67,14 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _jsonHeaders,
         body: json.encode({
-          'nombre': nombre.trim(),
-          'apellido': apellido.trim(),
-          'correo': correo.trim(),
-          'clave': clave,
+          'nombre':    nombre.trim(),
+          'apellido':  apellido.trim(),
+          'correo':    correo.trim(),
+          'clave':     clave,
           'documento': documento ?? '',
-          'usuario': correo.split('@')[0],
+          'usuario':   correo.split('@')[0],
         }),
       );
 
@@ -68,12 +83,12 @@ class AuthService {
       if (response.statusCode == 201) {
         if (data['token'] != null) {
           await _saveUserSession(
-            token: data['token'],
-            userId: data['usuario']['id'],
-            nombre: data['usuario']['nombre'],
+            token:    data['token'],
+            userId:   data['usuario']['id'],
+            nombre:   data['usuario']['nombre'],
             apellido: data['usuario']['apellido'],
-            correo: data['usuario']['correo'],
-            rol: data['usuario']['rol'],
+            correo:   data['usuario']['correo'],
+            rol:      data['usuario']['rol'],
           );
         }
         return {'success': true, 'message': 'Registro exitoso'};
@@ -95,19 +110,19 @@ class AuthService {
   // ─── SESIÓN ────────────────────────────────────────────────────────
   static Future<void> _saveUserSession({
     required String token,
-    required int userId,
+    required int    userId,
     required String nombre,
     required String apellido,
     required String correo,
-    required int rol,
+    required int    rol,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
-    await prefs.setInt('userId', userId);
-    await prefs.setString('nombre', nombre);
+    await prefs.setString('token',    token);
+    await prefs.setInt('userId',      userId);
+    await prefs.setString('nombre',   nombre);
     await prefs.setString('apellido', apellido);
-    await prefs.setString('correo', correo);
-    await prefs.setInt('rol', rol);
+    await prefs.setString('correo',   correo);
+    await prefs.setInt('rol',         rol);
     await prefs.setString('rolNombre', rol == 1 ? 'admin' : 'usuario');
     debugPrint('💾 [AUTH] Sesión guardada: $nombre $apellido (rol: $rol, id: $userId)');
   }
@@ -123,15 +138,14 @@ class AuthService {
     if (token == null) return null;
 
     return {
-      // ← CORREGIDO: clave 'id_usuario' para que AuthProvider.userId lo encuentre
       'id_usuario': prefs.getInt('userId'),
-      'id': prefs.getInt('userId'), // fallback por compatibilidad
-      'nombre': prefs.getString('nombre'),
-      'apellido': prefs.getString('apellido'),
-      'correo': prefs.getString('correo'),
-      'rol': prefs.getInt('rol'),
-      'id_rol': prefs.getInt('rol'), // fallback
-      'rolNombre': prefs.getString('rolNombre'),
+      'id':         prefs.getInt('userId'),
+      'nombre':     prefs.getString('nombre'),
+      'apellido':   prefs.getString('apellido'),
+      'correo':     prefs.getString('correo'),
+      'rol':        prefs.getInt('rol'),
+      'id_rol':     prefs.getInt('rol'),
+      'rolNombre':  prefs.getString('rolNombre'),
     };
   }
 
@@ -143,39 +157,41 @@ class AuthService {
   // ─── PETICIONES AUTENTICADAS ───────────────────────────────────────
   static Future<http.Response> authenticatedGet(String endpoint) async {
     final token = await getToken();
-    if (token == null) throw Exception('No hay sesión activa');
-    return await http.get(
+    if (token == null) throw Exception(_noSessionMsg);
+    return http.get(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: _authHeaders(token),
     );
   }
 
-  static Future<http.Response> authenticatedPost(String endpoint, Map<String, dynamic> body) async {
+  static Future<http.Response> authenticatedPost(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await getToken();
-    if (token == null) throw Exception('No hay sesión activa');
-    return await http.post(
+    if (token == null) throw Exception(_noSessionMsg);
+    return http.post(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: _authHeaders(token),
       body: json.encode(body),
     );
   }
 
-  static Future<http.Response> authenticatedPut(String endpoint, Map<String, dynamic> body) async {
+  static Future<http.Response> authenticatedPut(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await getToken();
-    if (token == null) throw Exception('No hay sesión activa');
-    return await http.put(
+    if (token == null) throw Exception(_noSessionMsg);
+    return http.put(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: _authHeaders(token),
       body: json.encode(body),
     );
   }
 
   static Future<http.Response> authenticatedDelete(String endpoint) async {
     final token = await getToken();
-    if (token == null) throw Exception('No hay sesión activa');
-    return await http.delete(
+    if (token == null) throw Exception(_noSessionMsg);
+    return http.delete(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      headers: _authHeaders(token),
     );
   }
 
