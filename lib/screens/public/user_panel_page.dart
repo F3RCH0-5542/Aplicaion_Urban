@@ -449,10 +449,8 @@ class _PersonalizacionesTabState extends State<_PersonalizacionesTab> {
     );
   }
 
-  // ── Card helpers extraídos para bajar complejidad cognitiva ───────
-
   BoxDecoration _buildCardBorder(String estado, Color color) {
-    final esAprobada  = estado == 'aprobada';
+    final esAprobada = estado == 'aprobada';
     return BoxDecoration(
       color: const Color(0xFF1a1a1a),
       borderRadius: BorderRadius.circular(14),
@@ -520,7 +518,8 @@ class _PersonalizacionesTabState extends State<_PersonalizacionesTab> {
   Widget _buildPersDesc(String desc) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-      child: Align(alignment: Alignment.centerLeft,
+      child: Align(
+          alignment: Alignment.centerLeft,
           child: Text(desc,
               style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.4),
               maxLines: 2, overflow: TextOverflow.ellipsis)),
@@ -725,14 +724,16 @@ class _PqrsTabState extends State<_PqrsTab> {
             child: Row(children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(color: Colors.blue.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
                 child: Text((p['tipo'] ?? '').toUpperCase(),
                     style: const TextStyle(color: Colors.blue, fontSize: 9, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
+                decoration: BoxDecoration(
+                    color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
                 child: Text(estado.toUpperCase(),
                     style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold)),
               ),
@@ -744,7 +745,8 @@ class _PqrsTabState extends State<_PqrsTab> {
           children: [
             const Divider(color: Color(0xFF2a2a2a)),
             const SizedBox(height: 8),
-            Align(alignment: Alignment.centerLeft,
+            Align(
+              alignment: Alignment.centerLeft,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text('Tu mensaje:',
                     style: TextStyle(color: Color(0xFF667eea), fontSize: 12, fontWeight: FontWeight.bold)),
@@ -765,7 +767,8 @@ class _PqrsTabState extends State<_PqrsTab> {
                         Icon(Icons.check_circle, color: Color(0xFF10B981), size: 16),
                         SizedBox(width: 6),
                         Text('Respuesta del administrador:',
-                            style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 12)),
+                            style: TextStyle(
+                                color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 12)),
                       ]),
                       const SizedBox(height: 8),
                       Text(respuesta,
@@ -832,7 +835,7 @@ class _PerfilTabState extends State<_PerfilTab> {
   Future<void> _guardar() async {
     setState(() => _isUpdating = true);
     final r = await widget.userService.actualizarPerfil(
-      nombre: _nombreCtrl.text.trim(), apellido: _apellidoCtrl.text.trim());
+        nombre: _nombreCtrl.text.trim(), apellido: _apellidoCtrl.text.trim());
     if (!mounted) return;
     setState(() => _isUpdating = false);
     _snack(r['success'] ? 'Perfil actualizado' : r['message'] ?? 'Error', error: !r['success']);
@@ -901,7 +904,8 @@ class _PerfilTabState extends State<_PerfilTab> {
         Text(authProvider.userFullName,
             style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 2),
-        Text(_perfil?['correo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        Text(_perfil?['correo'] ?? '',
+            style: const TextStyle(color: Colors.white70, fontSize: 13)),
       ]),
     );
   }
@@ -969,13 +973,15 @@ class _PerfilTabState extends State<_PerfilTab> {
     ]);
   }
 
+  // ✅ FIX: usa mounted en lugar de context.mounted en callback asíncrono
   Widget _buildLogoutButton(AuthProvider authProvider) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () async {
           await authProvider.logout();
-          if (context.mounted) Navigator.pushReplacementNamed(context, '/');
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, '/');
         },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFEF4444)),
