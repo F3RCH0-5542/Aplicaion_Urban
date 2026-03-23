@@ -11,69 +11,79 @@ class ChicagoPage extends StatefulWidget {
 }
 
 class _ChicagoPageState extends State<ChicagoPage> {
+  // ✅ Constantes definidas para evitar literales duplicados (SonarQube)
+  static const String _teamName = 'Chicago Bulls';
+  static const String _descLogoBordado =
+      'Gorra con logotipo bordado y diseño premium.';
+  static const String _descModeloClasico =
+      'Modelo clásico con detalles bordados oficiales.';
+  static const String _descNewEra =
+      'Gorra New Era 59FIFTY de la colección NBA Classic.';
+  static const String _descMultiColor = 'Gorra New Era multi color.';
+
   final List<Map<String, dynamic>> productos = [
     {
       'id': 2,
-      'nombre': 'Chicago Bulls',
+      'nombre': _teamName,
       'precio': 95000,
       'imagen': 'assets/img/Bulls/1.png',
-      'desc': 'Gorra New Era 59FIFTY de la colección NBA Classic.'
+      'desc': _descNewEra,
     },
     {
       'id': 3,
-      'nombre': 'Chicago Bulls Black',
+      'nombre': '$_teamName Black',
       'precio': 92000,
       'imagen': 'assets/img/Bulls/2-removebg-preview.png',
-      'desc': 'Gorra con logotipo bordado y diseño premium.'
+      'desc': _descLogoBordado,
     },
     {
       'id': 4,
-      'nombre': 'Chicago Bulls Logo',
+      'nombre': '$_teamName Logo',
       'precio': 98000,
       'imagen': 'assets/img/Bulls/3.png',
-      'desc': 'Modelo clásico con detalles bordados oficiales.'
+      'desc': _descModeloClasico,
     },
     {
       'id': 5,
-      'nombre': 'Chicago Bulls Red',
+      'nombre': '$_teamName Red',
       'precio': 95000,
       'imagen': 'assets/img/Bulls/4-removebg-preview.png',
-      'desc': 'Gorra New Era multi color.'
+      'desc': _descMultiColor,
     },
     {
       'id': 6,
-      'nombre': 'Chicago Bulls Blue Ice',
+      'nombre': '$_teamName Blue Ice',
       'precio': 92000,
       'imagen': 'assets/img/Bulls/5-removebg-preview.png',
-      'desc': 'Gorra con logotipo bordado y diseño premium.'
+      'desc': _descLogoBordado,
     },
     {
       'id': 7,
-      'nombre': 'Chicago Bulls Hormada',
+      'nombre': '$_teamName Hormada',
       'precio': 98000,
       'imagen': 'assets/img/Bulls/6.png',
-      'desc': 'Modelo clásico con detalles bordados oficiales.'
+      'desc': _descModeloClasico,
     },
     {
       'id': 8,
-      'nombre': 'Chicago Bulls Beige',
+      'nombre': '$_teamName Beige',
       'precio': 95000,
       'imagen': 'assets/img/Bulls/7-removebg-preview.png',
-      'desc': 'Gorra New Era de la colección NBA Classic.'
+      'desc': _descNewEra,
     },
     {
       'id': 9,
       'nombre': 'Chicago Blue',
       'precio': 92000,
       'imagen': 'assets/img/Bulls/8-removebg-preview.png',
-      'desc': 'Gorra con logotipo bordado y diseño premium.'
+      'desc': _descLogoBordado,
     },
     {
       'id': 10,
-      'nombre': 'Chicago Bulls Beige Hormada',
+      'nombre': '$_teamName Beige Hormada',
       'precio': 98000,
       'imagen': 'assets/img/Bulls/9-removebg-preview.png',
-      'desc': 'Modelo clásico con detalles bordados oficiales.'
+      'desc': _descModeloClasico,
     },
   ];
 
@@ -343,7 +353,7 @@ class _ChicagoPageState extends State<ChicagoPage> {
                     Text(
                         authProvider.isLoggedIn
                             ? 'Hola, ${authProvider.userFullName}'
-                            : 'Chicago Bulls Collection',
+                            : '$_teamName Collection',
                         style: const TextStyle(
                             color: Colors.white70, fontSize: 14))
                   ])),
@@ -447,14 +457,14 @@ class _ChicagoPageState extends State<ChicagoPage> {
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 20),
       child: Column(
         children: [
-          Text('Chicago Bulls',
+          Text(_teamName,
               style: TextStyle(
                   fontSize: isMobile ? 28 : 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white)),
           const SizedBox(height: 8),
           Text(
-              'Chicago Bulls se volvieron un ícono mundial gracias a su éxito y a Michael Jordan, considerado por muchos el mejor jugador de la historia.',
+              '$_teamName se volvieron un ícono mundial gracias a su éxito y a Michael Jordan, considerado por muchos el mejor jugador de la historia.',
               style: TextStyle(fontSize: 16, color: Colors.grey[400]),
               textAlign: TextAlign.center),
           const SizedBox(height: 24),
@@ -514,8 +524,8 @@ class _ChicagoPageState extends State<ChicagoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(nombre,
-                    maxLines: 2,                        // ✅ CORREGIDO
-                    overflow: TextOverflow.ellipsis,    // ✅ CORREGIDO
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
