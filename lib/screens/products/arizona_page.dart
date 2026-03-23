@@ -11,66 +11,68 @@ class ArizonaPage extends StatefulWidget {
 }
 
 class _ArizonaPageState extends State<ArizonaPage> {
+  static const _teamName = 'Arizona Cardinals';
+
   final List<Map<String, dynamic>> productos = [
     {
       'id': 38,
-      'nombre': 'Arizona Cardinals Classic',
+      'nombre': '$_teamName Classic',
       'precio': 95000,
       'imagen': 'assets/img/arizona/images-removebg-preview.png',
       'desc': 'Estilo clásico con logo bordado oficial del equipo.'
     },
     {
       'id': 39,
-      'nombre': 'Arizona Cardinals Dark Edition',
+      'nombre': '$_teamName Dark Edition',
       'precio': 92000,
       'imagen': 'assets/img/arizona/negrayroja-removebg-preview.png',
       'desc': 'Diseño moderno con logo en alto relieve.'
     },
     {
       'id': 40,
-      'nombre': 'Arizona Cardinals Premium White',
+      'nombre': '$_teamName Premium White',
       'precio': 98000,
       'imagen': 'assets/img/arizona/blancaroja-removebg-preview.png',
       'desc': 'Premium con detalles bordados en rojo.'
     },
     {
       'id': 41,
-      'nombre': 'Arizona Cardinals Black Series',
+      'nombre': '$_teamName Black Series',
       'precio': 95000,
       'imagen': 'assets/img/arizona/negra..-removebg-preview.png',
       'desc': 'Colección exclusiva con ajuste cómodo y elegante.'
     },
     {
       'id': 42,
-      'nombre': 'Arizona Cardinals Tricolor',
+      'nombre': '$_teamName Tricolor',
       'precio': 92000,
       'imagen': 'assets/img/arizona/tricolor-removebg-preview.png',
       'desc': 'Diseño moderno estilo casual con tres colores.'
     },
     {
       'id': 43,
-      'nombre': 'Arizona Cardinals White Pro',
+      'nombre': '$_teamName White Pro',
       'precio': 98000,
       'imagen': 'assets/img/arizona/blanca_..-removebg-preview.png',
       'desc': 'Logo principal en diseño destacado y premium.'
     },
     {
       'id': 44,
-      'nombre': 'Arizona Cardinals All Red',
+      'nombre': '$_teamName All Red',
       'precio': 95000,
       'imagen': 'assets/img/arizona/totalroja-removebg-preview.png',
       'desc': 'Visera plana con cardenal bordado en rojo intenso.'
     },
     {
       'id': 45,
-      'nombre': 'Arizona Cardinals Gray Edition',
+      'nombre': '$_teamName Gray Edition',
       'precio': 92000,
       'imagen': 'assets/img/arizona/gris-removebg-preview.png',
       'desc': 'Estilo deportivo para uso diario con acabado gris.'
     },
     {
       'id': 46,
-      'nombre': 'Arizona Cardinals Elite Black',
+      'nombre': '$_teamName Elite Black',
       'precio': 98000,
       'imagen': 'assets/img/arizona/negralinda-removebg-preview.png',
       'desc': 'Alta calidad para fanáticos reales del equipo.'
@@ -157,7 +159,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
         const SizedBox(width: 8),
         _buildNavMenu('NFL', [
           _buildNavMenuItem('Atlanta Falcons', '/falcon'),
-          _buildNavMenuItem('Arizona Cardinals', '/arizona'),
+          _buildNavMenuItem(_teamName, '/arizona'),
           _buildNavMenuItem('Las Vegas Raiders', '/vegas')
         ]),
         const SizedBox(width: 8),
@@ -323,10 +325,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
                   gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                    Color(0xFF667eea),
-                    Color(0xFF764ba2)
-                  ])),
+                      colors: [Color(0xFF667eea), Color(0xFF764ba2)])),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -343,82 +342,53 @@ class _ArizonaPageState extends State<ArizonaPage> {
                     Text(
                         authProvider.isLoggedIn
                             ? 'Hola, ${authProvider.userFullName}'
-                            : 'Arizona Cardinals Collection',
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 14))
+                            : '$_teamName Collection',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14))
                   ])),
           _buildDrawerSection('NBA', [
-            _buildDrawerItem(
-                'Chicago Bulls', Icons.sports_basketball, '/chicago'),
-            _buildDrawerItem(
-                'Boston Celtics', Icons.sports_basketball, '/boston'),
-            _buildDrawerItem(
-                'Los Angeles Lakers', Icons.sports_basketball, '/lakers')
+            _buildDrawerItem('Chicago Bulls', Icons.sports_basketball, '/chicago'),
+            _buildDrawerItem('Boston Celtics', Icons.sports_basketball, '/boston'),
+            _buildDrawerItem('Los Angeles Lakers', Icons.sports_basketball, '/lakers')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           _buildDrawerSection('NFL', [
-            _buildDrawerItem(
-                'Atlanta Falcons', Icons.sports_football, '/falcon'),
-            _buildDrawerItem(
-                'Arizona Cardinals', Icons.sports_football, '/arizona'),
-            _buildDrawerItem(
-                'Las Vegas Raiders', Icons.sports_football, '/vegas')
+            _buildDrawerItem('Atlanta Falcons', Icons.sports_football, '/falcon'),
+            _buildDrawerItem(_teamName, Icons.sports_football, '/arizona'),
+            _buildDrawerItem('Las Vegas Raiders', Icons.sports_football, '/vegas')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           _buildDrawerSection('MLB', [
             _buildDrawerItem('Boston Red Sox', Icons.sports_baseball, '/red'),
-            _buildDrawerItem(
-                'Chicago White Sox', Icons.sports_baseball, '/white'),
-            _buildDrawerItem(
-                'Atlanta Braves', Icons.sports_baseball, '/atlanta')
+            _buildDrawerItem('Chicago White Sox', Icons.sports_baseball, '/white'),
+            _buildDrawerItem('Atlanta Braves', Icons.sports_baseball, '/atlanta')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           ListTile(
             leading: const Icon(Icons.palette, color: Color(0xFFFF6B9D)),
-            title: const Text('Personalizadas',
-                style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/personalizadas');
-            },
+            title: const Text('Personalizadas', style: TextStyle(color: Colors.white)),
+            onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/personalizadas'); },
           ),
           ListTile(
             leading: const Icon(Icons.help_outline, color: Color(0xFF10b981)),
             title: const Text('PQRS', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/pqrs');
-            },
+            onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/pqrs'); },
           ),
           const Divider(color: Color(0xFF2a2a2a)),
           if (authProvider.isLoggedIn) ...[
             if (authProvider.isAdmin)
               ListTile(
-                  leading: const Icon(Icons.admin_panel_settings,
-                      color: Color(0xFFFF2770)),
-                  title: const Text('Panel Admin',
-                      style: TextStyle(color: Colors.white)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/admin');
-                  }),
+                  leading: const Icon(Icons.admin_panel_settings, color: Color(0xFFFF2770)),
+                  title: const Text('Panel Admin', style: TextStyle(color: Colors.white)),
+                  onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/admin'); }),
             ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white70),
-                title: const Text('Cerrar Sesión',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleLogout(authProvider);
-                }),
+                title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
+                onTap: () { Navigator.pop(context); _handleLogout(authProvider); }),
           ] else
             ListTile(
                 leading: const Icon(Icons.person, color: Colors.white70),
-                title: const Text('Iniciar Sesión',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/login');
-                }),
+                title: const Text('Iniciar Sesión', style: TextStyle(color: Colors.white)),
+                onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/login'); }),
         ],
       ),
     );
@@ -438,8 +408,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
                         end: Alignment.bottomCenter,
                         colors: [Color(0xFF97233F), Colors.black])),
                 child: const Center(
-                    child: Icon(Icons.sports_football,
-                        size: 100, color: Colors.white54)))));
+                    child: Icon(Icons.sports_football, size: 100, color: Colors.white54)))));
   }
 
   Widget _buildProductSection(bool isMobile) {
@@ -447,14 +416,14 @@ class _ArizonaPageState extends State<ArizonaPage> {
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 20),
       child: Column(
         children: [
-          Text('Arizona Cardinals',
+          Text(_teamName,
               style: TextStyle(
                   fontSize: isMobile ? 28 : 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white)),
           const SizedBox(height: 8),
           Text(
-              'El equipo de los Arizona Cardinals es uno de los más antiguos de la NFL, con una historia de lucha y pasión. Su emblema, el cardenal, representa la fortaleza y la velocidad en el campo. Las gorras de los Cardinals son un símbolo de identidad y resistencia.',
+              'El equipo de los $_teamName es uno de los más antiguos de la NFL, con una historia de lucha y pasión. Su emblema, el cardenal, representa la fortaleza y la velocidad en el campo. Las gorras de los Cardinals son un símbolo de identidad y resistencia.',
               style: TextStyle(fontSize: 16, color: Colors.grey[400]),
               textAlign: TextAlign.center),
           const SizedBox(height: 24),
@@ -485,10 +454,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFF2a2a2a), width: 1),
           boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 20,
-                spreadRadius: 2)
+            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, spreadRadius: 2)
           ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,16 +464,13 @@ class _ArizonaPageState extends State<ArizonaPage> {
               width: double.infinity,
               decoration: const BoxDecoration(
                   color: Color(0xFF0a0a0a),
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(12))),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
               child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: Image.asset(imagen,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => const Center(
-                          child: Icon(Icons.image,
-                              size: 60, color: Color(0xFF2a2a2a)))))),
+                          child: Icon(Icons.image, size: 60, color: Color(0xFF2a2a2a)))))),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -515,21 +478,16 @@ class _ArizonaPageState extends State<ArizonaPage> {
               children: [
                 Text(nombre,
                     style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 8),
                 Text(desc,
-                    style: TextStyle(
-                        fontSize: 14, color: Colors.grey[400], height: 1.4),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[400], height: 1.4),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 16),
                 Text('\$${_formatPrice(precio)} COP',
                     style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF667eea))),
+                        fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF667eea))),
                 const SizedBox(height: 16),
                 SizedBox(
                     width: double.infinity,
@@ -539,12 +497,10 @@ class _ArizonaPageState extends State<ArizonaPage> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF667eea),
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             elevation: 0),
                         child: const Text('Agregar al carrito',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w600)))),
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)))),
               ],
             ),
           ),
@@ -565,15 +521,10 @@ class _ArizonaPageState extends State<ArizonaPage> {
         child: Column(children: [
           const Text('UrbanCops',
               style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2)),
+                  fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
           const SizedBox(height: 16),
-          Text(
-              'Gorras urbanas exclusivas con estilo auténtico.\nRepresenta tu equipo, tu barrio y tu esencia.',
-              style:
-                  TextStyle(color: Colors.grey[400], fontSize: 14, height: 1.6),
+          Text('Gorras urbanas exclusivas con estilo auténtico.\nRepresenta tu equipo, tu barrio y tu esencia.',
+              style: TextStyle(color: Colors.grey[400], fontSize: 14, height: 1.6),
               textAlign: TextAlign.center),
           const SizedBox(height: 24),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -584,8 +535,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
           const SizedBox(height: 24),
           Divider(color: Colors.grey[800]),
           const SizedBox(height: 16),
-          Text(
-              '© ${DateTime.now().year} UrbanCops. Todos los derechos reservados.',
+          Text('© ${DateTime.now().year} UrbanCops. Todos los derechos reservados.',
               style: TextStyle(color: Colors.grey[600], fontSize: 12))
         ]));
   }
@@ -597,8 +547,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
             color: const Color(0xFF1a1a1a),
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFF2a2a2a))),
-        child: IconButton(
-            onPressed: () {}, icon: Icon(icon, color: Colors.white)));
+        child: IconButton(onPressed: () {}, icon: Icon(icon, color: Colors.white)));
   }
 
   Widget _buildNavMenu(String title, List<PopupMenuEntry<String>> items) {
@@ -613,9 +562,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
             child: Row(children: [
               Text(title,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14)),
+                      color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(width: 4),
               const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20)
             ])),
@@ -626,27 +573,20 @@ class _ArizonaPageState extends State<ArizonaPage> {
   PopupMenuItem<String> _buildNavMenuItem(String title, String route) {
     return PopupMenuItem<String>(
         value: route,
-        child: Text(title,
-            style: const TextStyle(color: Colors.white, fontSize: 14)));
+        child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)));
   }
 
   Widget _buildNavButton(String title, VoidCallback onPressed) {
     return TextButton(
         onPressed: onPressed,
         child: Text(title,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14)));
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)));
   }
 
   Widget _buildDrawerSection(String title, List<Widget> items) {
     return ExpansionTile(
         title: Text(title,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16)),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         iconColor: Colors.white,
         collapsedIconColor: Colors.white70,
         children: items);
@@ -655,12 +595,8 @@ class _ArizonaPageState extends State<ArizonaPage> {
   Widget _buildDrawerItem(String title, IconData icon, String route) {
     return ListTile(
         leading: Icon(icon, color: Colors.white70, size: 20),
-        title: Text(title,
-            style: const TextStyle(color: Colors.white70, fontSize: 14)),
-        onTap: () {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, route);
-        });
+        title: Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        onTap: () { Navigator.pop(context); Navigator.pushNamed(context, route); });
   }
 
   String _formatPrice(int price) {
@@ -675,8 +611,7 @@ class _ArizonaPageState extends State<ArizonaPage> {
           content: const Text('✅ Sesión cerrada correctamente'),
           backgroundColor: const Color(0xFF10b981),
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))));
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))));
       Navigator.pushReplacementNamed(context, '/');
     }
   }

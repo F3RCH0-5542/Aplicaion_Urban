@@ -12,66 +12,68 @@ class BostonPage extends StatefulWidget {
 }
 
 class _BostonPageState extends State<BostonPage> {
+  static const _teamName = 'Boston Celtics';
+
   final List<Map<String, dynamic>> productos = [
     {
       'id': 11,
-      'nombre': 'Boston Celtics Floral',
+      'nombre': '$_teamName Floral',
       'precio': 95000,
       'imagen': 'assets/img/boston/celtics+-removebg-preview.png',
       'desc': 'Edición especial floral New Era 59FIFTY'
     },
     {
       'id': 12,
-      'nombre': 'Boston Celtics Classic',
+      'nombre': '$_teamName Classic',
       'precio': 92000,
       'imagen': 'assets/img/boston/Adobe Express - file.png',
       'desc': 'Gorra con logotipo bordado premium'
     },
     {
       'id': 13,
-      'nombre': 'Boston Celtics White',
+      'nombre': '$_teamName White',
       'precio': 98000,
       'imagen': 'assets/img/boston/celtics3-removebg-preview.png',
       'desc': 'Blanca con visera verde, bordados oficiales'
     },
     {
       'id': 14,
-      'nombre': 'Boston Celtics Dark Floral',
+      'nombre': '$_teamName Dark Floral',
       'precio': 95000,
       'imagen': 'assets/img/boston/descarga1.png',
       'desc': 'Negra con logo verde y detalles florales'
     },
     {
       'id': 15,
-      'nombre': 'Boston Celtics Black',
+      'nombre': '$_teamName Black',
       'precio': 92000,
       'imagen': 'assets/img/boston/descarga.png',
       'desc': 'Estilo sobrio con logo bordado'
     },
     {
       'id': 16,
-      'nombre': 'Boston Celtics Green Visor',
+      'nombre': '$_teamName Green Visor',
       'precio': 98000,
       'imagen': 'assets/img/boston/celtics22.png',
       'desc': 'Blanco y verde con logo oficial'
     },
     {
       'id': 17,
-      'nombre': 'Boston Celtics Fresh',
+      'nombre': '$_teamName Fresh',
       'precio': 95000,
       'imagen': 'assets/img/boston/celticsporksi-removebg-preview.png',
       'desc': 'Estilo fresco con flores bordadas'
     },
     {
       'id': 18,
-      'nombre': 'Boston Celtics Green',
+      'nombre': '$_teamName Green',
       'precio': 92000,
       'imagen': 'assets/img/boston/celtics234.png',
       'desc': 'Verde con visera negra moderna'
     },
     {
       'id': 19,
-      'nombre': 'Boston Celtics Elite',
+      'nombre': '$_teamName Elite',
       'precio': 98000,
       'imagen': 'assets/img/boston/Boston12.png',
       'desc': 'Modelo negro elegante con logo'
@@ -152,7 +154,7 @@ class _BostonPageState extends State<BostonPage> {
         const SizedBox(width: 16),
         _buildNavMenu('NBA', [
           _buildNavMenuItem('Chicago Bulls', '/chicago'),
-          _buildNavMenuItem('Boston Celtics', '/boston'),
+          _buildNavMenuItem(_teamName, '/boston'),
           _buildNavMenuItem('Los Angeles Lakers', '/lakers')
         ]),
         const SizedBox(width: 8),
@@ -324,10 +326,7 @@ class _BostonPageState extends State<BostonPage> {
                   gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                    Color(0xFF667eea),
-                    Color(0xFF764ba2)
-                  ])),
+                      colors: [Color(0xFF667eea), Color(0xFF764ba2)])),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -344,82 +343,53 @@ class _BostonPageState extends State<BostonPage> {
                     Text(
                         authProvider.isLoggedIn
                             ? 'Hola, ${authProvider.userFullName}'
-                            : 'Boston Celtics Collection',
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 14))
+                            : '$_teamName Collection',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14))
                   ])),
           _buildDrawerSection('NBA', [
-            _buildDrawerItem(
-                'Chicago Bulls', Icons.sports_basketball, '/chicago'),
-            _buildDrawerItem(
-                'Boston Celtics', Icons.sports_basketball, '/boston'),
-            _buildDrawerItem(
-                'Los Angeles Lakers', Icons.sports_basketball, '/lakers')
+            _buildDrawerItem('Chicago Bulls', Icons.sports_basketball, '/chicago'),
+            _buildDrawerItem(_teamName, Icons.sports_basketball, '/boston'),
+            _buildDrawerItem('Los Angeles Lakers', Icons.sports_basketball, '/lakers')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           _buildDrawerSection('NFL', [
-            _buildDrawerItem(
-                'Atlanta Falcons', Icons.sports_football, '/falcon'),
-            _buildDrawerItem(
-                'Arizona Cardinals', Icons.sports_football, '/arizona'),
-            _buildDrawerItem(
-                'Las Vegas Raiders', Icons.sports_football, '/vegas')
+            _buildDrawerItem('Atlanta Falcons', Icons.sports_football, '/falcon'),
+            _buildDrawerItem('Arizona Cardinals', Icons.sports_football, '/arizona'),
+            _buildDrawerItem('Las Vegas Raiders', Icons.sports_football, '/vegas')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           _buildDrawerSection('MLB', [
             _buildDrawerItem('Boston Red Sox', Icons.sports_baseball, '/red'),
-            _buildDrawerItem(
-                'Chicago White Sox', Icons.sports_baseball, '/white'),
-            _buildDrawerItem(
-                'Atlanta Braves', Icons.sports_baseball, '/atlanta')
+            _buildDrawerItem('Chicago White Sox', Icons.sports_baseball, '/white'),
+            _buildDrawerItem('Atlanta Braves', Icons.sports_baseball, '/atlanta')
           ]),
           const Divider(color: Color(0xFF2a2a2a)),
           ListTile(
             leading: const Icon(Icons.palette, color: Color(0xFFFF6B9D)),
-            title: const Text('Personalizadas',
-                style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/personalizadas');
-            },
+            title: const Text('Personalizadas', style: TextStyle(color: Colors.white)),
+            onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/personalizadas'); },
           ),
           ListTile(
             leading: const Icon(Icons.help_outline, color: Color(0xFF10b981)),
             title: const Text('PQRS', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/pqrs');
-            },
+            onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/pqrs'); },
           ),
           const Divider(color: Color(0xFF2a2a2a)),
           if (authProvider.isLoggedIn) ...[
             if (authProvider.isAdmin)
               ListTile(
-                  leading: const Icon(Icons.admin_panel_settings,
-                      color: Color(0xFFFF2770)),
-                  title: const Text('Panel Admin',
-                      style: TextStyle(color: Colors.white)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/admin');
-                  }),
+                  leading: const Icon(Icons.admin_panel_settings, color: Color(0xFFFF2770)),
+                  title: const Text('Panel Admin', style: TextStyle(color: Colors.white)),
+                  onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/admin'); }),
             ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white70),
-                title: const Text('Cerrar Sesión',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleLogout(authProvider);
-                }),
+                title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
+                onTap: () { Navigator.pop(context); _handleLogout(authProvider); }),
           ] else
             ListTile(
                 leading: const Icon(Icons.person, color: Colors.white70),
-                title: const Text('Iniciar Sesión',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/login');
-                }),
+                title: const Text('Iniciar Sesión', style: TextStyle(color: Colors.white)),
+                onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/login'); }),
         ],
       ),
     );
@@ -438,8 +408,7 @@ class _BostonPageState extends State<BostonPage> {
                         end: Alignment.bottomCenter,
                         colors: [Colors.green.shade900, Colors.black])),
                 child: const Center(
-                    child: Icon(Icons.sports_basketball,
-                        size: 100, color: Colors.white54)))));
+                    child: Icon(Icons.sports_basketball, size: 100, color: Colors.white54)))));
   }
 
   Widget _buildProductSection(bool isMobile) {
@@ -447,7 +416,7 @@ class _BostonPageState extends State<BostonPage> {
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 20),
       child: Column(
         children: [
-          Text('Boston Celtics',
+          Text(_teamName,
               style: TextStyle(
                   fontSize: isMobile ? 28 : 32,
                   fontWeight: FontWeight.bold,
@@ -485,10 +454,7 @@ class _BostonPageState extends State<BostonPage> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFF2a2a2a), width: 1),
           boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 20,
-                spreadRadius: 2)
+            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, spreadRadius: 2)
           ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,16 +464,13 @@ class _BostonPageState extends State<BostonPage> {
               width: double.infinity,
               decoration: const BoxDecoration(
                   color: Color(0xFF0a0a0a),
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(12))),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
               child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: Image.asset(imagen,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => const Center(
-                          child: Icon(Icons.image,
-                              size: 60, color: Color(0xFF2a2a2a)))))),
+                          child: Icon(Icons.image, size: 60, color: Color(0xFF2a2a2a)))))),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -515,21 +478,16 @@ class _BostonPageState extends State<BostonPage> {
               children: [
                 Text(nombre,
                     style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 8),
                 Text(desc,
-                    style: TextStyle(
-                        fontSize: 14, color: Colors.grey[400], height: 1.4),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[400], height: 1.4),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 16),
                 Text('\$${_formatPrice(precio)} COP',
                     style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF667eea))),
+                        fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF667eea))),
                 const SizedBox(height: 16),
                 SizedBox(
                     width: double.infinity,
@@ -539,12 +497,10 @@ class _BostonPageState extends State<BostonPage> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF667eea),
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             elevation: 0),
                         child: const Text('Agregar al carrito',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w600)))),
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)))),
               ],
             ),
           ),
@@ -565,15 +521,10 @@ class _BostonPageState extends State<BostonPage> {
         child: Column(children: [
           const Text('UrbanCops',
               style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2)),
+                  fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
           const SizedBox(height: 16),
-          Text(
-              'Gorras urbanas exclusivas con estilo auténtico.\nRepresenta tu equipo, tu barrio y tu esencia.',
-              style:
-                  TextStyle(color: Colors.grey[400], fontSize: 14, height: 1.6),
+          Text('Gorras urbanas exclusivas con estilo auténtico.\nRepresenta tu equipo, tu barrio y tu esencia.',
+              style: TextStyle(color: Colors.grey[400], fontSize: 14, height: 1.6),
               textAlign: TextAlign.center),
           const SizedBox(height: 24),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -584,8 +535,7 @@ class _BostonPageState extends State<BostonPage> {
           const SizedBox(height: 24),
           Divider(color: Colors.grey[800]),
           const SizedBox(height: 16),
-          Text(
-              '© ${DateTime.now().year} UrbanCops. Todos los derechos reservados.',
+          Text('© ${DateTime.now().year} UrbanCops. Todos los derechos reservados.',
               style: TextStyle(color: Colors.grey[600], fontSize: 12))
         ]));
   }
@@ -597,8 +547,7 @@ class _BostonPageState extends State<BostonPage> {
             color: const Color(0xFF1a1a1a),
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFF2a2a2a))),
-        child: IconButton(
-            onPressed: () {}, icon: Icon(icon, color: Colors.white)));
+        child: IconButton(onPressed: () {}, icon: Icon(icon, color: Colors.white)));
   }
 
   Widget _buildNavMenu(String title, List<PopupMenuEntry<String>> items) {
@@ -613,9 +562,7 @@ class _BostonPageState extends State<BostonPage> {
             child: Row(children: [
               Text(title,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14)),
+                      color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(width: 4),
               const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20)
             ])),
@@ -626,27 +573,20 @@ class _BostonPageState extends State<BostonPage> {
   PopupMenuItem<String> _buildNavMenuItem(String title, String route) {
     return PopupMenuItem<String>(
         value: route,
-        child: Text(title,
-            style: const TextStyle(color: Colors.white, fontSize: 14)));
+        child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)));
   }
 
   Widget _buildNavButton(String title, VoidCallback onPressed) {
     return TextButton(
         onPressed: onPressed,
         child: Text(title,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14)));
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)));
   }
 
   Widget _buildDrawerSection(String title, List<Widget> items) {
     return ExpansionTile(
         title: Text(title,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16)),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         iconColor: Colors.white,
         collapsedIconColor: Colors.white70,
         children: items);
@@ -655,12 +595,8 @@ class _BostonPageState extends State<BostonPage> {
   Widget _buildDrawerItem(String title, IconData icon, String route) {
     return ListTile(
         leading: Icon(icon, color: Colors.white70, size: 20),
-        title: Text(title,
-            style: const TextStyle(color: Colors.white70, fontSize: 14)),
-        onTap: () {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, route);
-        });
+        title: Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        onTap: () { Navigator.pop(context); Navigator.pushNamed(context, route); });
   }
 
   String _formatPrice(int price) {
@@ -675,8 +611,7 @@ class _BostonPageState extends State<BostonPage> {
           content: const Text('✅ Sesión cerrada correctamente'),
           backgroundColor: const Color(0xFF10b981),
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))));
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))));
       Navigator.pushReplacementNamed(context, '/');
     }
   }
