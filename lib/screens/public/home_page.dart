@@ -32,6 +32,35 @@ class _HomePageState extends State<HomePage> {
   static const Color _accentAlt = Color(0xFF764ba2);
   static const Color _danger = Color(0xFFFF2770);
 
+  // ✅ Constantes de rutas para evitar literales duplicados (SonarQube)
+  static const String _routeHome = '/';
+  static const String _routeChicago = '/chicago';
+  static const String _routeBoston = '/boston';
+  static const String _routeLakers = '/lakers';
+  static const String _routeFalcon = '/falcon';
+  static const String _routeArizona = '/arizona';
+  static const String _routeVegas = '/vegas';
+  static const String _routeRed = '/red';
+  static const String _routeWhite = '/white';
+  static const String _routeAtlanta = '/atlanta';
+  static const String _routePersonalizadas = '/personalizadas';
+  static const String _routePqrs = '/pqrs';
+  static const String _routeMiCuenta = '/mi-cuenta';
+  static const String _routeAdmin = '/admin';
+  static const String _routeCart = '/cart';
+  static const String _routeLogin = '/login';
+
+  // ✅ Constantes de nombres de equipos (SonarQube)
+  static const String _teamChicagoBulls = 'Chicago Bulls';
+  static const String _teamBostonCeltics = 'Boston Celtics';
+  static const String _teamLosAngelesLakers = 'Los Angeles Lakers';
+  static const String _teamAtlantaFalcons = 'Atlanta Falcons';
+  static const String _teamArizonaCardinals = 'Arizona Cardinals';
+  static const String _teamLasVegasRaiders = 'Las Vegas Raiders';
+  static const String _teamBostonRedSox = 'Boston Red Sox';
+  static const String _teamChicagoWhiteSox = 'Chicago White Sox';
+  static const String _teamAtlantaBraves = 'Atlanta Braves';
+
   @override
   void initState() {
     super.initState();
@@ -140,7 +169,8 @@ class _HomePageState extends State<HomePage> {
         leading: isMobile
             ? Builder(
                 builder: (ctx) => IconButton(
-                  icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
+                  icon: const Icon(Icons.menu_rounded,
+                      color: Colors.white, size: 26),
                   onPressed: () => Scaffold.of(ctx).openDrawer(),
                 ),
               )
@@ -163,27 +193,28 @@ class _HomePageState extends State<HomePage> {
         _buildLogo(38),
         const SizedBox(width: 16),
         _buildNavMenu('NBA', [
-          _buildNavMenuItem('Chicago Bulls', '/chicago'),
-          _buildNavMenuItem('Boston Celtics', '/boston'),
-          _buildNavMenuItem('Los Angeles Lakers', '/lakers'),
+          _buildNavMenuItem(_teamChicagoBulls, _routeChicago),
+          _buildNavMenuItem(_teamBostonCeltics, _routeBoston),
+          _buildNavMenuItem(_teamLosAngelesLakers, _routeLakers),
         ]),
         const SizedBox(width: 6),
         _buildNavMenu('NFL', [
-          _buildNavMenuItem('Atlanta Falcons', '/falcon'),
-          _buildNavMenuItem('Arizona Cardinals', '/arizona'),
-          _buildNavMenuItem('Las Vegas Raiders', '/vegas'),
+          _buildNavMenuItem(_teamAtlantaFalcons, _routeFalcon),
+          _buildNavMenuItem(_teamArizonaCardinals, _routeArizona),
+          _buildNavMenuItem(_teamLasVegasRaiders, _routeVegas),
         ]),
         const SizedBox(width: 6),
         _buildNavMenu('MLB', [
-          _buildNavMenuItem('Boston Red Sox', '/red'),
-          _buildNavMenuItem('Chicago White Sox', '/white'),
-          _buildNavMenuItem('Atlanta Braves', '/atlanta'),
+          _buildNavMenuItem(_teamBostonRedSox, _routeRed),
+          _buildNavMenuItem(_teamChicagoWhiteSox, _routeWhite),
+          _buildNavMenuItem(_teamAtlantaBraves, _routeAtlanta),
         ]),
         const SizedBox(width: 6),
         _buildNavButton('Personalizadas',
-            () => Navigator.pushNamed(context, '/personalizadas')),
+            () => Navigator.pushNamed(context, _routePersonalizadas)),
         const SizedBox(width: 6),
-        _buildNavButton('PQRS', () => Navigator.pushNamed(context, '/pqrs')),
+        _buildNavButton(
+            'PQRS', () => Navigator.pushNamed(context, _routePqrs)),
         const Spacer(),
         _buildDesktopSearchBar(),
         const SizedBox(width: 12),
@@ -191,13 +222,13 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.account_circle, color: _accent),
             tooltip: 'Mi Cuenta',
-            onPressed: () => Navigator.pushNamed(context, '/mi-cuenta'),
+            onPressed: () => Navigator.pushNamed(context, _routeMiCuenta),
           ),
           if (auth.isAdmin)
             IconButton(
               icon: const Icon(Icons.admin_panel_settings, color: _danger),
               tooltip: 'Panel Admin',
-              onPressed: () => Navigator.pushNamed(context, '/admin'),
+              onPressed: () => Navigator.pushNamed(context, _routeAdmin),
             ),
           _buildUserBadge(auth.userFullName),
           IconButton(
@@ -207,7 +238,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ] else
           TextButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/login'),
+            onPressed: () => Navigator.pushNamed(context, _routeLogin),
             icon: const Icon(Icons.person, color: Colors.white, size: 18),
             label: const Text('Iniciar Sesión',
                 style: TextStyle(color: Colors.white, fontSize: 13)),
@@ -237,8 +268,9 @@ class _HomePageState extends State<HomePage> {
         ),
         if (auth.isLoggedIn)
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: _accent, size: 22),
-            onPressed: () => Navigator.pushNamed(context, '/mi-cuenta'),
+            icon: const Icon(Icons.account_circle_outlined,
+                color: _accent, size: 22),
+            onPressed: () => Navigator.pushNamed(context, _routeMiCuenta),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
@@ -258,16 +290,19 @@ class _HomePageState extends State<HomePage> {
         decoration: InputDecoration(
           hintText: 'Buscar gorras...',
           hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+          prefixIcon:
+              const Icon(Icons.search, color: Colors.grey, size: 20),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close, color: Colors.grey, size: 18),
+                  icon:
+                      const Icon(Icons.close, color: Colors.grey, size: 18),
                   onPressed: () => setState(() => _searchQuery = ''),
                 )
               : null,
           filled: true,
           fillColor: _card,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: _border),
@@ -287,7 +322,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildLogo(double size) {
     return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/'),
+      onTap: () => Navigator.pushNamed(context, _routeHome),
       borderRadius: BorderRadius.circular(8),
       child: Image.asset(
         'assets/img/logo12.png',
@@ -328,7 +363,8 @@ class _HomePageState extends State<HomePage> {
           hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
           prefixIcon: Icon(Icons.search, color: Colors.grey, size: 18),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           isDense: true,
         ),
       ),
@@ -348,7 +384,9 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Text(name,
           style: const TextStyle(
-              color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500)),
     );
   }
 
@@ -358,8 +396,9 @@ class _HomePageState extends State<HomePage> {
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          onPressed: () => Navigator.pushNamed(context, '/cart'),
-          icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 24),
+          onPressed: () => Navigator.pushNamed(context, _routeCart),
+          icon: const Icon(Icons.shopping_bag_outlined,
+              color: Colors.white, size: 24),
           padding: const EdgeInsets.all(8),
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
         ),
@@ -370,7 +409,8 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [_danger, Color(0xFFFF6B9D)]),
+                gradient: const LinearGradient(
+                    colors: [_danger, Color(0xFFFF6B9D)]),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -379,10 +419,13 @@ class _HomePageState extends State<HomePage> {
                       spreadRadius: 1)
                 ],
               ),
-              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              constraints:
+                  const BoxConstraints(minWidth: 16, minHeight: 16),
               child: Text('${cart.itemCount}',
                   style: const TextStyle(
-                      color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center),
             ),
           ),
@@ -438,30 +481,31 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           _buildDrawerSection('NBA', Icons.sports_basketball_outlined, [
-            _buildDrawerItem('Chicago Bulls', '/chicago'),
-            _buildDrawerItem('Boston Celtics', '/boston'),
-            _buildDrawerItem('Los Angeles Lakers', '/lakers'),
+            _buildDrawerItem(_teamChicagoBulls, _routeChicago),
+            _buildDrawerItem(_teamBostonCeltics, _routeBoston),
+            _buildDrawerItem(_teamLosAngelesLakers, _routeLakers),
           ]),
           _buildDrawerDivider(),
           _buildDrawerSection('NFL', Icons.sports_football_outlined, [
-            _buildDrawerItem('Atlanta Falcons', '/falcon'),
-            _buildDrawerItem('Arizona Cardinals', '/arizona'),
-            _buildDrawerItem('Las Vegas Raiders', '/vegas'),
+            _buildDrawerItem(_teamAtlantaFalcons, _routeFalcon),
+            _buildDrawerItem(_teamArizonaCardinals, _routeArizona),
+            _buildDrawerItem(_teamLasVegasRaiders, _routeVegas),
           ]),
           _buildDrawerDivider(),
           _buildDrawerSection('MLB', Icons.sports_baseball_outlined, [
-            _buildDrawerItem('Boston Red Sox', '/red'),
-            _buildDrawerItem('Chicago White Sox', '/white'),
-            _buildDrawerItem('Atlanta Braves', '/atlanta'),
+            _buildDrawerItem(_teamBostonRedSox, _routeRed),
+            _buildDrawerItem(_teamChicagoWhiteSox, _routeWhite),
+            _buildDrawerItem(_teamAtlantaBraves, _routeAtlanta),
           ]),
           _buildDrawerDivider(),
           ListTile(
-            leading: const Icon(Icons.palette_outlined, color: Color(0xFFFF6B9D), size: 22),
+            leading: const Icon(Icons.palette_outlined,
+                color: Color(0xFFFF6B9D), size: 22),
             title: const Text('Personalizadas',
                 style: TextStyle(color: Colors.white, fontSize: 14)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/personalizadas');
+              Navigator.pushNamed(context, _routePersonalizadas);
             },
           ),
           ListTile(
@@ -471,18 +515,19 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(color: Colors.white, fontSize: 14)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/pqrs');
+              Navigator.pushNamed(context, _routePqrs);
             },
           ),
           _buildDrawerDivider(),
           if (auth.isLoggedIn) ...[
             ListTile(
-              leading: const Icon(Icons.account_circle_outlined, color: _accent, size: 22),
+              leading: const Icon(Icons.account_circle_outlined,
+                  color: _accent, size: 22),
               title: const Text('Mi Cuenta',
                   style: TextStyle(color: Colors.white, fontSize: 14)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/mi-cuenta');
+                Navigator.pushNamed(context, _routeMiCuenta);
               },
             ),
             if (auth.isAdmin)
@@ -493,11 +538,12 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(color: Colors.white, fontSize: 14)),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/admin');
+                  Navigator.pushNamed(context, _routeAdmin);
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.white54, size: 22),
+              leading: const Icon(Icons.logout_rounded,
+                  color: Colors.white54, size: 22),
               title: const Text('Cerrar Sesión',
                   style: TextStyle(color: Colors.white70, fontSize: 14)),
               onTap: () {
@@ -507,12 +553,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ] else
             ListTile(
-              leading: const Icon(Icons.login_rounded, color: Colors.white70, size: 22),
+              leading: const Icon(Icons.login_rounded,
+                  color: Colors.white70, size: 22),
               title: const Text('Iniciar Sesión',
                   style: TextStyle(color: Colors.white, fontSize: 14)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/login');
+                Navigator.pushNamed(context, _routeLogin);
               },
             ),
           const SizedBox(height: 16),
@@ -521,8 +568,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildDrawerDivider() =>
-      const Divider(color: Color(0xFF222222), height: 1, indent: 16, endIndent: 16);
+  Widget _buildDrawerDivider() => const Divider(
+      color: Color(0xFF222222), height: 1, indent: 16, endIndent: 16);
 
   // ══════════════════════════════════════════════════════════════════════════
   // CARRUSELES
@@ -562,16 +609,20 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           if (!isMobile) ...[
-            _buildArrow(isLeft: true, onPressed: () {
-              _mainCarouselController.previousPage(
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeInOut);
-            }),
-            _buildArrow(isLeft: false, onPressed: () {
-              _mainCarouselController.nextPage(
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeInOut);
-            }),
+            _buildArrow(
+                isLeft: true,
+                onPressed: () {
+                  _mainCarouselController.previousPage(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeInOut);
+                }),
+            _buildArrow(
+                isLeft: false,
+                onPressed: () {
+                  _mainCarouselController.nextPage(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeInOut);
+                }),
           ],
           Positioned(
             bottom: 16,
@@ -596,7 +647,8 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(16),
               child: PageView(
                 controller: _secondCarouselController,
-                onPageChanged: (i) => setState(() => _currentSecondPage = i),
+                onPageChanged: (i) =>
+                    setState(() => _currentSecondPage = i),
                 children: [
                   _buildCarouselImage(
                       'assets/img/An-Assortment-of-Baseball-Hats-Displayed-on-Shelves_2468753_wh860.png'),
@@ -608,16 +660,20 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             if (!isMobile) ...[
-              _buildArrow(isLeft: true, onPressed: () {
-                _secondCarouselController.previousPage(
-                    duration: const Duration(milliseconds: 350),
-                    curve: Curves.easeInOut);
-              }),
-              _buildArrow(isLeft: false, onPressed: () {
-                _secondCarouselController.nextPage(
-                    duration: const Duration(milliseconds: 350),
-                    curve: Curves.easeInOut);
-              }),
+              _buildArrow(
+                  isLeft: true,
+                  onPressed: () {
+                    _secondCarouselController.previousPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut);
+                  }),
+              _buildArrow(
+                  isLeft: false,
+                  onPressed: () {
+                    _secondCarouselController.nextPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut);
+                  }),
             ],
             Positioned(
               bottom: 14,
@@ -640,12 +696,14 @@ class _HomePageState extends State<HomePage> {
       errorBuilder: (_, __, ___) => Container(
         color: _card,
         child: const Center(
-            child: Icon(Icons.image_not_supported_outlined, size: 60, color: _border)),
+            child: Icon(Icons.image_not_supported_outlined,
+                size: 60, color: _border)),
       ),
     );
   }
 
-  Widget _buildArrow({required bool isLeft, required VoidCallback onPressed}) {
+  Widget _buildArrow(
+      {required bool isLeft, required VoidCallback onPressed}) {
     return Positioned(
       left: isLeft ? 16 : null,
       right: isLeft ? null : 16,
@@ -683,7 +741,9 @@ class _HomePageState extends State<HomePage> {
           width: i == currentPage ? 22 : 7,
           height: 7,
           decoration: BoxDecoration(
-            color: i == currentPage ? _accent : Colors.white.withOpacity(0.3),
+            color: i == currentPage
+                ? _accent
+                : Colors.white.withOpacity(0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -756,27 +816,32 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> _buildNBAProducts() {
     return [
-      _buildProductCard(2, 'Chicago Bulls',
-          'Gorra New Era 59FIFTY colección NBA Classic.', 95000, 'assets/img/chicago.png'),
-      _buildProductCard(11, 'Boston Celtics',
-          'Logotipo bordado y diseño premium.', 92000, 'assets/img/Raiders12.png'),
-      _buildProductCard(20, 'Los Angeles Lakers',
-          'Modelo clásico con detalles bordados oficiales.', 98000, 'assets/img/Lakers12.png'),
+      _buildProductCard(2, _teamChicagoBulls,
+          'Gorra New Era 59FIFTY colección NBA Classic.',
+          95000, 'assets/img/chicago.png'),
+      _buildProductCard(11, _teamBostonCeltics,
+          'Logotipo bordado y diseño premium.',
+          92000, 'assets/img/Raiders12.png'),
+      _buildProductCard(20, _teamLosAngelesLakers,
+          'Modelo clásico con detalles bordados oficiales.',
+          98000, 'assets/img/Lakers12.png'),
     ];
   }
 
   List<Widget> _buildNFLProducts() {
     return [
-      _buildProductCard(29, 'Atlanta Falcons',
-          'Gorra New Era 59FIFTY colección Classic.', 95000, 'assets/img/Atlanta12.png'),
-      _buildProductCard(38, 'Arizona Cardinals',
-          'Logotipo bordado y diseño premium.', 92000, 'assets/img/Arizona12.png'),
-      _buildProductCard(47, 'Las Vegas Raiders',
-          'Modelo clásico con detalles bordados oficiales.', 98000, 'assets/img/Raiders12.png'),
+      _buildProductCard(29, _teamAtlantaFalcons,
+          'Gorra New Era 59FIFTY colección Classic.',
+          95000, 'assets/img/Atlanta12.png'),
+      _buildProductCard(38, _teamArizonaCardinals,
+          'Logotipo bordado y diseño premium.',
+          92000, 'assets/img/Arizona12.png'),
+      _buildProductCard(47, _teamLasVegasRaiders,
+          'Modelo clásico con detalles bordados oficiales.',
+          98000, 'assets/img/Raiders12.png'),
     ];
   }
 
-  // ✅ MÉTODO CORREGIDO - sin duplicado
   Widget _buildProductCard(int idProducto, String name, String description,
       int price, String imagePath) {
     final w = MediaQuery.of(context).size.width;
@@ -801,7 +866,8 @@ class _HomePageState extends State<HomePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(14)),
             child: Container(
               height: isMobile ? 150 : 200,
               width: double.infinity,
@@ -829,7 +895,9 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 3),
                 Text(description,
                     style: TextStyle(
-                        fontSize: 11, color: Colors.grey[500], height: 1.3),
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                        height: 1.3),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 8),
@@ -843,7 +911,8 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   height: 38,
                   child: ElevatedButton(
-                    onPressed: () => _addToCart(idProducto, name, price, imagePath),
+                    onPressed: () =>
+                        _addToCart(idProducto, name, price, imagePath),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _accent,
                       foregroundColor: Colors.white,
@@ -852,7 +921,8 @@ class _HomePageState extends State<HomePage> {
                           borderRadius: BorderRadius.circular(10)),
                     ),
                     child: const Text('Agregar al carrito',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -966,7 +1036,8 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 14),
           Text(
             'Gorras urbanas exclusivas con estilo auténtico.\nRepresenta tu equipo, tu barrio y tu esencia.',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.7),
+            style: TextStyle(
+                color: Colors.grey[600], fontSize: 13, height: 1.7),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -977,7 +1048,8 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(width: 12),
               _buildSocialButton(Icons.camera_alt_outlined, _danger),
               const SizedBox(width: 12),
-              _buildSocialButton(Icons.phone_outlined, const Color(0xFF25D366)),
+              _buildSocialButton(
+                  Icons.phone_outlined, const Color(0xFF25D366)),
             ],
           ),
           const SizedBox(height: 28),
@@ -1023,7 +1095,8 @@ class _HomePageState extends State<HomePage> {
         side: const BorderSide(color: _border),
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1056,14 +1129,18 @@ class _HomePageState extends State<HomePage> {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
       child: Text(title,
           style: const TextStyle(
-              color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 13)),
+              color: Colors.white70,
+              fontWeight: FontWeight.w600,
+              fontSize: 13)),
     );
   }
 
-  Widget _buildDrawerSection(String title, IconData icon, List<Widget> items) {
+  Widget _buildDrawerSection(
+      String title, IconData icon, List<Widget> items) {
     return Theme(
       data: Theme.of(context).copyWith(
         dividerColor: Colors.transparent,
@@ -1073,10 +1150,13 @@ class _HomePageState extends State<HomePage> {
         leading: Icon(icon, color: _accent, size: 22),
         title: Text(title,
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 15)),
         iconColor: Colors.white54,
         collapsedIconColor: Colors.white38,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        tilePadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         children: items,
       ),
     );
@@ -1086,7 +1166,8 @@ class _HomePageState extends State<HomePage> {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 56, right: 16),
       dense: true,
-      title: Text(title, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+      title: Text(title,
+          style: TextStyle(color: Colors.grey[400], fontSize: 13)),
       onTap: () {
         Navigator.pop(context);
         Navigator.pushNamed(context, route);
@@ -1107,7 +1188,8 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFF10b981),
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.all(12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ));
   }
 }
