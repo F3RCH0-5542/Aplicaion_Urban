@@ -5,16 +5,26 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class PqrsService {
+  // ✅ Constantes para evitar literales duplicados (SonarQube)
+  static const String _baseUrlDefault = 'http://localhost:3001/api/pqrs';
+  static const String _baseUrlAndroid = 'http://10.0.2.2:3001/api/pqrs';
+  static const String _contentTypeKey  = 'Content-Type';
+  static const String _contentTypeJson = 'application/json';
+  static const String _authKey         = 'Authorization';
+
+  static Map<String, String> get _jsonHeaders => {
+    _contentTypeKey: _contentTypeJson,
+  };
+
+  static Map<String, String> _authHeaders(String token) => {
+    _contentTypeKey: _contentTypeJson,
+    _authKey: 'Bearer $token',
+  };
+
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:3001/api/pqrs';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3001/api/pqrs';
-    } else if (Platform.isIOS) {
-      return 'http://localhost:3001/api/pqrs';
-    } else {
-      return 'http://localhost:3001/api/pqrs';
-    }
+    if (kIsWeb)              return _baseUrlDefault;
+    if (Platform.isAndroid)  return _baseUrlAndroid;
+    return _baseUrlDefault;
   }
 
   /// Crear PQRS
@@ -26,23 +36,17 @@ class PqrsService {
     int? idUsuario,
   }) async {
     try {
-      // print('🔵 Creando PQRS en: $baseUrl');
-      // print('🔵 id_usuario: $idUsuario');
-
       final response = await http.post(
         Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: _jsonHeaders,
         body: jsonEncode({
-          'nombre': nombre,
-          'correo': correo,
-          'tipo_pqrs': tipoPqrs.toLowerCase(),
+          'nombre':      nombre,
+          'correo':      correo,
+          'tipo_pqrs':   tipoPqrs.toLowerCase(),
           'descripcion': descripcion,
-          'id_usuario': idUsuario,
+          'id_usuario':  idUsuario,
         }),
       ).timeout(const Duration(seconds: 10));
-
-      // print('✅ Status Code: ${response.statusCode}');
-      // print('✅ Response: ${response.body}');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {'success': true, 'data': jsonDecode(response.body)};
@@ -51,7 +55,6 @@ class PqrsService {
         return {'success': false, 'message': error['msg'] ?? 'Error al crear PQRS'};
       }
     } catch (e) {
-      // print('❌ Error al crear PQRS: $e');
       return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
@@ -59,56 +62,33 @@ class PqrsService {
   /// Obtener todos los PQRS (admin)
   static Future<List<dynamic>> obtenerPqrs(String token) async {
     try {
-      // print('🔵 Obteniendo PQRS desde: $baseUrl');
-      // print('🔵 Token: ${token.isNotEmpty ? "Presente" : "Vacío"}');
-
       final response = await http.get(
         Uri.parse(baseUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: _authHeaders(token),
       ).timeout(const Duration(seconds: 10));
 
-      // print('✅ Status Code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as List;
-        // print('✅ PQRS encontradas: ${data.length}');
-        return data;
-      } else {
-        // print('❌ Error ${response.statusCode}: ${response.body}');
-        return [];
+        return jsonDecode(response.body) as List;
       }
+      return [];
     } catch (e) {
-      // print('❌ Error en obtenerPqrs: $e');
       return [];
     }
   }
 
   /// Responder PQRS (admin)
   static Future<Map<String, dynamic>> responderPqrs({
-    required int idPqrs,
+    required int    idPqrs,
     required String respuesta,
     required String token,
     String estado = 'Resuelto',
   }) async {
     try {
-      // print('🔵 Respondiendo PQRS #$idPqrs en: $baseUrl/$idPqrs/responder');
-
       final response = await http.post(
         Uri.parse('$baseUrl/$idPqrs/responder'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'respuesta': respuesta,
-          'estado': estado,
-        }),
+        headers: _authHeaders(token),
+        body: jsonEncode({'respuesta': respuesta, 'estado': estado}),
       ).timeout(const Duration(seconds: 10));
-
-      // print('✅ Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return {'success': true, 'data': jsonDecode(response.body)};
@@ -117,28 +97,20 @@ class PqrsService {
         return {'success': false, 'message': body['msg'] ?? 'Error al responder PQRS'};
       }
     } catch (e) {
-      // print('❌ Error al responder PQRS: $e');
       return {'success': false, 'message': 'Error: $e'};
     }
   }
 
   /// Eliminar PQRS (admin)
   static Future<Map<String, dynamic>> eliminarPqrs({
-    required int idPqrs,
+    required int    idPqrs,
     required String token,
   }) async {
     try {
-      // print('🔵 Eliminando PQRS #$idPqrs');
-
       final response = await http.delete(
         Uri.parse('$baseUrl/$idPqrs'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: _authHeaders(token),
       ).timeout(const Duration(seconds: 10));
-
-      // print('✅ Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return {'success': true};
@@ -147,7 +119,6 @@ class PqrsService {
         return {'success': false, 'message': body['msg'] ?? 'Error al eliminar PQRS'};
       }
     } catch (e) {
-      // print('❌ Error al eliminar PQRS: $e');
       return {'success': false, 'message': 'Error: $e'};
     }
   }
